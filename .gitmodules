@@ -1,0 +1,15 @@
+[submodule "src/text-cleaner"]
+	path = src/text-cleaner
+	url = https://github.com/grammatek/text-cleaner
+[submodule "src/regina_normalizer"]
+	path = src/regina_normalizer
+	url = https://github.com/cadia-lvl/regina_normalizer
+[submodule "src/GreynirCorrect4LT"]
+	path = src/GreynirCorrect4LT
+	url = https://github.com/grammatek/GreynirCorrect4LT
+[submodule "src/ice-g2p"]
+	path = src/ice-g2p
+	url = https://github.com/grammatek/ice-g2p
+[submodule "src/phrasing-tool"]
+	path = src/phrasing-tool
+	url = git@github.com:grammatek/phrasing-tool.git
