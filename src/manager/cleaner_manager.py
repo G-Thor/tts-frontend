@@ -31,7 +31,7 @@ def clean_text(text: str) -> list:
 
 def create_token_lists(html_string: str) -> Tuple[list, list]:
     """Extract raw tokens list and clean tokens list from html_string."""
-    
+
     raw_text = clean_html_string(html_string)
     cleaned = clean(raw_text)
     token_list = init_tokens(raw_text)
