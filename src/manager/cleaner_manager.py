@@ -7,8 +7,8 @@ possibly contain TagTokens, created from SSML-tags inserted by the cleaner modul
 
 from typing import Tuple
 
-from .tokens import CleanToken, TagToken
-from .tokens_manager import init_tokens
+from tokens import CleanToken, TagToken
+from tokens_manager import init_tokens
 from text_cleaner import clean
 from text_cleaner import clean_html_string
 
@@ -21,7 +21,7 @@ def clean_text(text: str) -> list:
     token_list = init_tokens(text)
     clean_tokens = []
     for tok in token_list:
-        cleaned = clean(tok.name)
+        cleaned = clean(tok.name, preserve_string=['ca'])
         clean_token = CleanToken(tok)
         clean_token.set_clean(cleaned)
         clean_tokens.append(clean_token)

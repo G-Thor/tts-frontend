@@ -1,4 +1,4 @@
-from .tokens import Token
+from tokens import Token, TagToken
 
 
 def init_tokens(text: str) -> list:
@@ -14,8 +14,10 @@ def init_tokens(text: str) -> list:
     return tokens_list
 
 
-def extract_text(token_list: list) -> str:
+def extract_text(token_list: list, ignore_tags=True) -> str:
     token_strings = []
     for elem in token_list:
+        if isinstance(elem, TagToken) and ignore_tags:
+            continue
         token_strings.append(elem.name)
     return ' '.join(token_strings)
