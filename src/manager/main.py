@@ -16,7 +16,7 @@ def get_html_text():
            'um tilfinningu fyrir samhengi í lífinu á eftirfarandi hátt: </span></p>'
 
 def main():
-    input_text = "Leikurinn fór ca. 5-2"
+    input_text = "Leikurinn fór, ca. 5-2 í gær."
     #input_text = get_html_text()
     clean = clean_text(input_text)
     print("============== CLEAN TOKENS =======================")

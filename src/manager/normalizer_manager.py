@@ -41,15 +41,22 @@ def normalize_token_list(token_list: list) -> list:
     normalized = normalize(text)
     norm_index = 0
     for i, tok in enumerate(token_list):
-
         if isinstance(tok, TagToken):
             normalized_tokens.append(tok)
             norm_index -= 1 # normalized token list does not contain the tagTokens, so we need to go back with the index
         else:
             norm_words = normalized[norm_index][1].strip().split(' ')
             for wrd in norm_words:
+                punct = ''
+                if wrd.endswith(',') or wrd.endswith('.'):
+                    punct = wrd[-1]
+                    wrd = wrd[:-1]
                 norm_tok = init_normalized(tok, wrd, normalized[norm_index][2])
                 normalized_tokens.append(norm_tok)
+                if punct:
+                    # for IceParser the pos of a puncutation char is the punctuation char itself
+                    punct_tok = init_normalized(tok, punct, punct)
+                    normalized_tokens.append(punct_tok)
         norm_index += 1
 
     return normalized_tokens
