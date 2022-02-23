@@ -80,9 +80,23 @@ class NormalizedToken:
         else:
             self.original_token = original.get_original_token() # do we need this?
             self.clean_token = original
+        self.name = self.original_token.name
+        self.token_index = self.original_token.token_index
+
+    def __repr__(self):
+        return f"NormalizedToken({self.original_token.name}, {self.name}, {self.token_index})"
+
+    def __str__(self):
+        return f"NormalizedToken: original: {self.original_token.name}, " \
+               f"normalized: {self.name}, index: {self.token_index}"
+
+    def __eq__(self, other):
+        if isinstance(other, NormalizedToken):
+            return other.name == self.name and other.token_index == self.token_index
+        return False
 
     def set_normalized(self, norm: str):
-        self.normalized = norm
+        self.name = norm
 
     def set_index(self, ind: int):
         self.token_index = ind
@@ -111,7 +125,7 @@ class TagToken:
 
     def __init__(self, name: str, ind: int):
         self.name = name
-        self.position = ind # position in text token collection
+        self.token_index = ind # position in text token collection
         # if this is an ssml start or end tag, set values in set_ssml_start/set_ssml_end as appropriate
         self.ssml_start = False
         self.ssml_end = False
@@ -123,7 +137,7 @@ class TagToken:
         self.ssml_end = end
 
     def __repr__(self):
-        return f"TagToken({self.name}, {self.position})"
+        return f"TagToken({self.name}, {self.token_index})"
 
     def __str__(self):
-        return f"TagToken: tag: {self.name}, index: {self.position}"
+        return f"TagToken: tag: {self.name}, index: {self.token_index}"
