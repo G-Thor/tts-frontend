@@ -1,6 +1,7 @@
 
 from cleaner_manager import clean_text, clean_html_text
 from normalizer_manager import normalize_token_list
+from phrasing_manager import phrase_token_list
 
 
 def get_html_text():
@@ -24,6 +25,8 @@ def main():
     normalized = normalize_token_list(clean)
     print("============== NORMALIZED TOKENS ==================")
     print(normalized)
+    phrased = phrase_token_list(normalized)
+    print(phrased)
 
 if __name__ == '__main__':
     main()
