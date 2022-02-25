@@ -33,7 +33,6 @@ def phrase_text(tagged_text: str):
 def phrase_token_list(normalized_tokens: list) -> list:
     """Send the pos-tagged text in normalized tokens through
     the phrasing module and returns the list with inserted TagTokens where appropriate."""
-    #TODO: preserve tags in input list, like '<sil>'!
     tagged_text = extract_tagged_text(normalized_tokens)
     phrased = phrase_text(tagged_text)
     phrased_list = phrased[0].split(' ')
