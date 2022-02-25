@@ -1,7 +1,9 @@
 
+from tokens_manager import extract_text
 from cleaner_manager import clean_text, clean_html_text
 from normalizer_manager import normalize_token_list
 from phrasing_manager import phrase_token_list
+from g2p_manager import transcribe
 
 
 def get_html_text():
@@ -26,8 +28,10 @@ def main():
     print("============== NORMALIZED TOKENS ==================")
     print(normalized)
     phrased = phrase_token_list(normalized)
-    for token in phrased:
-        print(token)
+    #for token in phrased:
+    #    print(token)
+    transcribed = transcribe(phrased)
+    print(extract_text(transcribed, False))
 
 if __name__ == '__main__':
     main()
