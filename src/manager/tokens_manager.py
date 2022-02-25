@@ -5,7 +5,9 @@ def init_tokens(text: str) -> list:
     tokens_list = []
     running_char_ind = 0
     for tok in text.split(' '):
-        base_token = Token(tok)
+        if not tok:
+            continue
+        base_token = Token(tok.strip())
         base_token.set_index(len(tokens_list))
         base_token.set_span(running_char_ind, running_char_ind + len(tok))
         running_char_ind += len(tok) + 1 #count for space after current token
@@ -18,6 +20,8 @@ def extract_text(token_list: list, ignore_tags=True) -> str:
     token_strings = []
     for elem in token_list:
         if isinstance(elem, TagToken) and ignore_tags:
+            continue
+        if not elem.name:
             continue
         token_strings.append(elem.name)
     return ' '.join(token_strings)

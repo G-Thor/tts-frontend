@@ -11,7 +11,7 @@ from tokens_manager import extract_tagged_text
 from Phrasing.phrasing import Phrasing
 
 
-def parse_text(tagged_text: str):
+def phrase_text(tagged_text: str):
     MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
     PROJECT_ROOT, tail = os.path.split(MANAGER_PROJECT_ROOT)
     os.chdir(PROJECT_ROOT + '/phrasing-tool/Phrasing/IceNLP/bat/iceparser')
@@ -34,5 +34,25 @@ def phrase_token_list(normalized_tokens: list) -> list:
     """Send the pos-tagged text in normalized tokens through
     the phrasing module and returns the list with inserted TagTokens where appropriate."""
     tagged_text = extract_tagged_text(normalized_tokens)
-    parsed = parse_text(tagged_text)
-    return parsed
+    phrased = phrase_text(tagged_text)
+    phrased_list = phrased[0].split(' ')
+    phrased_token_list = []
+    phrase_index = 0
+    print(str(normalized_tokens))
+    print(str(phrased_list))
+    for i, token in enumerate(normalized_tokens):
+        if token.name == phrased_list[phrase_index]:
+            phrased_token_list.append(token)
+        elif isinstance(token, TagToken):
+            phrased_token_list.append(token)
+            phrase_index -= 1
+        elif phrased_list[phrase_index].startswith('<'):
+            # we have a new tag token from the phrasing module
+            tag_tok = TagToken(phrased_list[phrase_index], token.token_index)
+            phrased_token_list.append(tag_tok)
+            if token.pos != '.' and token.pos != ',' and token.name != '/':
+                phrased_token_list.append(token)
+                phrase_index += 1
+
+        phrase_index += 1
+    return phrased_token_list

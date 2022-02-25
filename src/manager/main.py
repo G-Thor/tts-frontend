@@ -17,7 +17,7 @@ def get_html_text():
            'um tilfinningu fyrir samhengi í lífinu á eftirfarandi hátt: </span></p>'
 
 def main():
-    input_text = "Leikurinn fór, ca. 5-2 í gær."
+    input_text = "Áttu ákvæði  önnur málsgrein  fimmta grein laga númer hundrað þrjátíu og átta /  tvö þúsund og þrjú því heldur ekki við umrætt tímabil , þar sem á því tímabili var hvorki framlengdur eldri samningur né gerður nýr tímabundinn samningur innan sex vikna frá lokum eldri samnings . "
     #input_text = get_html_text()
     clean = clean_text(input_text)
     print("============== CLEAN TOKENS =======================")
@@ -26,7 +26,8 @@ def main():
     print("============== NORMALIZED TOKENS ==================")
     print(normalized)
     phrased = phrase_token_list(normalized)
-    print(phrased)
+    for token in phrased:
+        print(token)
 
 if __name__ == '__main__':
     main()

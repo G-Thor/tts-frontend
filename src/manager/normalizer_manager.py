@@ -51,8 +51,9 @@ def normalize_token_list(token_list: list) -> list:
                 if wrd.endswith(',') or wrd.endswith('.'):
                     punct = wrd[-1]
                     wrd = wrd[:-1]
-                norm_tok = init_normalized(tok, wrd, normalized[norm_index][2])
-                normalized_tokens.append(norm_tok)
+                if wrd:
+                    norm_tok = init_normalized(tok, wrd, normalized[norm_index][2])
+                    normalized_tokens.append(norm_tok)
                 if punct:
                     # for IceParser the pos of a puncutation char is the punctuation char itself
                     punct_tok = init_normalized(tok, punct, punct)
