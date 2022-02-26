@@ -16,14 +16,24 @@ def transcribe(token_list: list) -> list:
     """Transcribes the tokens in token_list and returns a list of
     transcribedTokens, keeps the tagTokens already in the input token_list, except for
     the lang-SSML tag, which is used to transcribe English words using English g2p"""
-    g2p = Transcriber(G2P_METHOD.FAIRSEQ, False)
+    g2p = Transcriber(G2P_METHOD.FAIRSEQ, True)
     transcribed_list = []
+    is_icelandic = True
     for token in token_list:
         if isinstance(token, TagToken):
-            #TODO handle lang tags separately
-            transcribed_list.append(token)
+            # we don't add the lang-ssml tags to the g2p output, we use them to identify English
+            # words in the input and replace them with <sil> tokens
+            # TODO: replace with "enska" / "á ensku" ?
+            if token.ssml_start:
+                is_icelandic = False
+                transcribed_list.append(TagToken('<sil>', token.token_index))
+            elif token.ssml_end:
+                is_icelandic = True
+                transcribed_list.append(TagToken('<sil>', token.token_index))
+            else:
+                transcribed_list.append(token)
         else:
-            transcribed = g2p.transcribe(token.name.lower(), False, True, False)
+            transcribed = g2p.transcribe(token.name.lower(), is_icelandic, False, True, False)
             transcr_token = TranscribedToken(token)
             transcr_token.name = transcribed
             transcribed_list.append(transcr_token)

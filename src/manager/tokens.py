@@ -112,11 +112,11 @@ class TranscribedToken:
         self.name = ''
 
     def __repr__(self):
-        return f"NormalizedToken({self.normalized.name}, {self.name}, {self.normalized.token_index})"
+        return f"TranscribedToken({self.normalized.name}, {self.name}, {self.normalized.token_index})"
 
     def __str__(self):
-        return f"NormalizedToken: original: {self.normalized.name}, " \
-               f"normalized: {self.name}, index: {self.normalized.token_index}"
+        return f"TranscribedToken: original: {self.normalized.name}, " \
+               f"transcribed: {self.name}, index: {self.normalized.token_index}"
 
     def __eq__(self, other):
         if isinstance(other, NormalizedToken):

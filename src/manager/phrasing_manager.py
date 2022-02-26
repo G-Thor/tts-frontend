@@ -35,7 +35,10 @@ def phrase_token_list(normalized_tokens: list) -> list:
     the phrasing module and returns the list with inserted TagTokens where appropriate."""
     tagged_text = extract_tagged_text(normalized_tokens)
     phrased = phrase_text(tagged_text)
-    phrased_list = phrased[0].split(' ')
+    phrased_list = []
+    #TODO: should we maintain sentence structure or only use one string for the whole input?
+    for sent in phrased:
+        phrased_list.extend(sent.split(' '))
     phrased_token_list = []
     phrase_index = 0
     print(str(normalized_tokens))

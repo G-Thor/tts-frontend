@@ -1,3 +1,4 @@
+import pycountry
 
 from tokens_manager import extract_text
 from cleaner_manager import clean_text, clean_html_text
@@ -18,20 +19,27 @@ def get_html_text():
            '<span id="qitl_0597" class="sentence"> Sigrún Gunnarsdóttir hefur íslenskað skilgreiningu hugtaksins ' \
            'um tilfinningu fyrir samhengi í lífinu á eftirfarandi hátt: </span></p>'
 
+def get_normalized_law_text():
+    return 'Áttu ákvæði  önnur málsgrein  fimmta grein laga númer hundrað þrjátíu og átta /  tvö þúsund og þrjú því ' \
+           'heldur ekki við umrætt tímabil , þar sem á því tímabili var hvorki framlengdur eldri samningur né gerður nýr ' \
+           'tímabundinn samningur innan sex vikna frá lokum eldri samnings . '
+
 def main():
-    input_text = "Áttu ákvæði  önnur málsgrein  fimmta grein laga númer hundrað þrjátíu og átta /  tvö þúsund og þrjú því heldur ekki við umrætt tímabil , þar sem á því tímabili var hvorki framlengdur eldri samningur né gerður nýr tímabundinn samningur innan sex vikna frá lokum eldri samnings . "
-    #input_text = get_html_text()
-    clean = clean_text(input_text)
+    input_text = get_html_text()
+    clean = clean_html_text(input_text)
     print("============== CLEAN TOKENS =======================")
     print(clean)
     normalized = normalize_token_list(clean)
     print("============== NORMALIZED TOKENS ==================")
     print(normalized)
     phrased = phrase_token_list(normalized)
-    #for token in phrased:
-    #    print(token)
+    for token in phrased:
+        print(token)
     transcribed = transcribe(phrased)
+    for token in transcribed:
+        print(token)
     print(extract_text(transcribed, False))
+
 
 if __name__ == '__main__':
     main()
