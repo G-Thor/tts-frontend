@@ -82,6 +82,7 @@ class NormalizedToken:
             self.clean_token = original
         self.name = self.original_token.name
         self.token_index = self.original_token.token_index
+        self.pos = '' #TODO: use some kind of default pos-tag like 'unk'?
 
     def __repr__(self):
         return f"NormalizedToken({self.original_token.name}, {self.name}, {self.token_index})"
