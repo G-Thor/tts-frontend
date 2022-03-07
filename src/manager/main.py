@@ -65,15 +65,13 @@ def get_normalized_law_text():
            'heldur ekki við umrætt tímabil , þar sem á því tímabili var hvorki framlengdur eldri samningur né gerður nýr ' \
            'tímabundinn samningur innan sex vikna frá lokum eldri samnings . '
 
+
 def main():
-    with open('/Users/anna/01_Vinna/projects/tts-frontend/tafla_24.html') as f:
-        input_text = f.read()
-    #input_text = get_html_table()
+    input_text = get_html_table()
     clean = clean_html_text(input_text)
     print("============== CLEAN TOKENS =======================")
     print(clean)
     print(extract_text(clean))
-    exit()
     normalized = normalize_token_list(clean)
     print("============== NORMALIZED TOKENS ==================")
     print(normalized)
