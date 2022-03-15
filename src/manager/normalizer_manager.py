@@ -12,11 +12,11 @@ from regina_normalizer import number_functions
 
 
 def normalize(text: str) -> str:
-    abbr_sent = abbr_functions.replace_abbreviations(text, "sport")
+    abbr_sent = abbr_functions.replace_abbreviations(text, "other")
     expanded_abbr = ''
     for tup in abbr_sent:
         expanded_abbr += tup[1] + ' '
-    normalized = number_functions.handle_sentence(expanded_abbr.strip(), "sport")
+    normalized = number_functions.handle_sentence(expanded_abbr.strip(), "other")
 
     return normalized
 
