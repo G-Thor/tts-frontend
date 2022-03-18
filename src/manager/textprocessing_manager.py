@@ -13,18 +13,19 @@
 
 """
 
-from .settings import ManagerResources
-from .settings import (
+from settings import ManagerResources
+from settings import (
     HTML_CLOSING_TAG_REPL,
     PUNCTUATION,
     VALID_CHARACTERS,
 )
-from .tts_tokenizer import Tokenizer
-from .tokens_manager import extract_text
-from .cleaner_manager import clean_text, clean_html_text
-from .normalizer_manager import normalize_token_list
-from .phrasing_manager import phrase_token_list
-from .g2p_manager import transcribe
+from tts_tokenizer import Tokenizer
+from tokens_manager import extract_text
+from cleaner_manager import clean_text, clean_html_text, clean_html_string
+from normalizer_manager import normalize_token_list
+from phrasing_manager import phrase_token_list
+from g2p_manager import transcribe
+
 
 class Manager:
 
@@ -51,37 +52,76 @@ class Manager:
         return HTML_CLOSING_TAG_REPL
 
     def clean(self, text: str, html=False) -> list:
-        clean = text
+        """
+        Clean 'text', ensuring only valid characters are included in the output. If 'html' is set to True,
+        we assume the input text is in html-format, the processing method being implemented to parse
+        html-epub-format for audio books.
+
+        :param text: the input text to clean
+        :param html: if True, the input text will be parsed as html and then cleaned
+        :return: a list of CleanTokens representing a clean version of 'text'
+        """
         if html:
             clean = clean_html_text(text, alphabet=self.get_alphabet(), punct_set=self.get_punct_symbols())
         else:
-            clean = clean_text(clean, alphabet=self.get_alphabet(), punct_set=self.get_punct_symbols())
+            clean = clean_text(text, alphabet=self.get_alphabet(), punct_set=self.get_punct_symbols())
         return clean
 
-    def normalize(self, text: str) -> list:
+    def normalize(self, text: str, html=False) -> list:
+        """
+        Normalize 'text', ensuring it does not contain any characters or symbols not valid for g2p.
+
+        :param text: raw text or html-text to normalize
+        :param html: if True, 'text' will be interpreted as html-string and parsed accordingly
+        :return: a list or NormalizedTokens representing a normalized version of 'text' with additional TagTokens representing
+        ssml-tags or pauses. Includes processing history of each token.
+        of each token
+        """
+        raw_text = text
+        if html:
+            raw_text = clean_html_string(text)
         clean = []
-        tokenized = self.tokenizer.detect_sentences(text)
+        tokenized = self.tokenizer.detect_sentences(raw_text)
         for sent in tokenized:
             clean.extend(self.clean(sent))
         normalized = normalize_token_list(clean)
         return normalized
 
-    def phrase(self, text: str) -> list:
-        normalized = self.normalize(text)
+    def phrase(self, text: str, html=False) -> list:
+        """
+        Normalizes 'text' and adds phrasing marks as pause tags ('<pau>' or '<sil>') to the normalized text.
+
+        :param text: raw text or html-text to normalize and phrase
+        :param html: if True, 'text' will be interpreted as html-string and parsed accordingly
+        :return: a list of PhraseTokens representing a normalized version of 'text' with additional TagTokens representing
+        ssml-tags or pauses. Includes processing history of each token.
+        """
+        normalized = self.normalize(text, html)
         phrased = phrase_token_list(normalized)
         return phrased
 
-    def transcribe(self, text: str, phrasing=True, spellcheck=False) -> list:
+    def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False, syllab_stress=False) -> list:
+        """
+        Transcribes 'text' using the SAMPA phonetic alphabet.
+
+        :param text: raw text or html-text to transcribe
+        :param html: if True, 'text' will be interpreted as html-string and parsed accordingly
+        :param phrasing: if True, perform phrasing after normalizing (and spellcheck if applied)
+        :param spellcheck: if True, perform spellcheck after normalizing
+        :param syllab_stress: if True, add syllabification and stress labels to the phonetic transcripts
+        :return: a list of TranscribedTokens representing a transcribed version of 'text' with additional TagTokens representing
+        ssml-tags or pauses. Includes processing history of each token.
+        """
         if phrasing:
-            normalized = self.phrase(text)
+            normalized = self.phrase(text, html)
         else:
-            normalized = self.normalize(text)
+            normalized = self.normalize(text, html)
 
         # TODO: add spellchecker manager
         if spellcheck:
             pass
 
-        transcribed = transcribe(normalized)
+        transcribed = transcribe(normalized, syllab_stress)
         return transcribed
 
 
@@ -98,7 +138,7 @@ def main():
     phrased = manager.phrase(input_text)
     print('==========PHRASED=============')
     print(extract_text(phrased, False))
-    transcribed = manager.transcribe(input_text)
+    transcribed = manager.transcribe(input_text, syllab_stress=True)
     print('==========TRANSCRIBED=============')
     print(extract_text(transcribed, False))
 

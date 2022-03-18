@@ -5,7 +5,6 @@ Various token classes to hold information from the text processing pipeline.
 
 from typing import Union
 
-# TODO: all classes need appropriate to_string methods
 
 class Token:
 

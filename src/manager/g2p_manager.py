@@ -6,7 +6,7 @@ a string in an input format for a TTS system. Following formats are supported:
 """
 import os
 
-from .tokens import Token, NormalizedToken, TranscribedToken, TagToken
+from tokens import Token, NormalizedToken, TranscribedToken, TagToken
 from ice_g2p.transcriber import Transcriber, G2P_METHOD
 
 
@@ -31,7 +31,7 @@ def generate_normalized(word: str, token_ind: int) -> NormalizedToken:
     return normalized
 
 
-def transcribe(token_list: list) -> list:
+def transcribe(token_list: list, syllab_stress=False) -> list:
     """Transcribes the tokens in token_list and returns a list of
     transcribedTokens, keeps the tagTokens already in the input token_list, except for
     the lang-SSML tag, which is used to transcribe English words using English g2p"""
@@ -47,7 +47,7 @@ def transcribe(token_list: list) -> list:
                 is_icelandic = False
                 transcribed_list.append(TagToken(SIL_TOKEN, token.token_index))
                 normalized = generate_normalized(ENGLISH, token.token_index)
-                transcribed = g2p.transcribe(ENGLISH, True, False, True, False)
+                transcribed = g2p.transcribe(ENGLISH, True, syllab_stress, True, False)
                 transcr_token = TranscribedToken(normalized)
                 transcr_token.name = transcribed
                 transcribed_list.append(transcr_token)
@@ -58,7 +58,7 @@ def transcribe(token_list: list) -> list:
             else:
                 transcribed_list.append(token)
         else:
-            transcribed = g2p.transcribe(token.name.lower(), is_icelandic, False, True, False)
+            transcribed = g2p.transcribe(token.name.lower(), is_icelandic, syllab_stress, True, False)
             transcr_token = TranscribedToken(token)
             transcr_token.name = transcribed
             transcribed_list.append(transcr_token)

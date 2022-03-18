@@ -7,8 +7,8 @@ possibly contain TagTokens, created from SSML-tags inserted by the cleaner modul
 
 from typing import Tuple
 
-from .tokens import CleanToken, TagToken
-from .tokens_manager import init_tokens
+from tokens import CleanToken, TagToken
+from tokens_manager import init_tokens
 from text_cleaner import clean
 from text_cleaner import clean_html_string
 
@@ -37,6 +37,13 @@ def create_token_lists(html_string: str, alphabet: list, punct_set: list) -> Tup
     token_list = init_tokens(raw_text)
     clean_tokens = init_tokens(cleaned)
     return token_list, clean_tokens
+
+
+def html_to_raw(html_string: str):
+    """The html parser is designed around the EPUB-format and will parse the html_string accordingly.
+    Returns a raw string representation of the html content"""
+
+    return clean_html_string(html_string)
 
 
 def clean_html_text(html_string: str, alphabet: list, punct_set: list) -> list:
