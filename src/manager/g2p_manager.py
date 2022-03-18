@@ -6,9 +6,7 @@ a string in an input format for a TTS system. Following formats are supported:
 """
 import os
 
-from typing import Union
-from tokens import Token, NormalizedToken, TranscribedToken, TagToken
-from tokens_manager import extract_tagged_text
+from .tokens import Token, NormalizedToken, TranscribedToken, TagToken
 from ice_g2p.transcriber import Transcriber, G2P_METHOD
 
 
