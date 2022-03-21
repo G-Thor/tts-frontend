@@ -12,19 +12,20 @@
     a console_script entry point in setup.py
 
 """
+import argparse
 
-from settings import ManagerResources
-from settings import (
+from .settings import ManagerResources
+from .settings import (
     HTML_CLOSING_TAG_REPL,
     PUNCTUATION,
     VALID_CHARACTERS,
 )
-from tts_tokenizer import Tokenizer
-from tokens_manager import extract_text
-from cleaner_manager import clean_text, clean_html_text, clean_html_string
-from normalizer_manager import normalize_token_list
-from phrasing_manager import phrase_token_list
-from g2p_manager import transcribe
+from .tts_tokenizer import Tokenizer
+from .tokens_manager import extract_text
+from .cleaner_manager import clean_text, clean_html_text, clean_html_string
+from .normalizer_manager import normalize_token_list
+from .phrasing_manager import phrase_token_list
+from .g2p_manager import transcribe
 
 
 class Manager:
@@ -125,9 +126,21 @@ class Manager:
         return transcribed
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='tts frontend-pipeline for raw text')
+    parser.add_argument('input_text', type=str, help='text to process for tts')
+
+    return parser.parse_args()
+
+
 def main():
-    input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
-    #input_text = 'að áramótum 2021/2022'
+    #input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
+    args = parse_args()
+    if not args.input_text:
+        print('please provede string to process!')
+        exit()
+
+    input_text = args.input_text
     manager = Manager()
     clean_input = manager.clean(input_text)
     print('==========CLEAN=============')

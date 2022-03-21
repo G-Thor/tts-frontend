@@ -6,15 +6,16 @@ where it assumes a good place for a speech pause.
 import os
 
 from typing import Union
-from tokens import Token, CleanToken, NormalizedToken, TagToken
-from tokens_manager import extract_tagged_text
+from .tokens import Token, CleanToken, NormalizedToken, TagToken
+from .tokens_manager import extract_tagged_text
 from Phrasing.phrasing import Phrasing
 
 
 def phrase_text(tagged_text: str):
     MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
     PROJECT_ROOT, tail = os.path.split(MANAGER_PROJECT_ROOT)
-    os.chdir(PROJECT_ROOT + '/phrasing-tool/Phrasing/IceNLP/bat/iceparser')
+    os.chdir(PROJECT_ROOT + '/manager/IceNLP/bat/iceparser')
+    print('PROJECT_ROOT: ' + PROJECT_ROOT)
     with open('tagged_tmp.txt', 'w') as f:
         f.write(tagged_text)
     comm = './iceparser.sh -i tagged_tmp.txt -o ../../../parsed_tmp.txt'
@@ -22,11 +23,11 @@ def phrase_text(tagged_text: str):
     os.remove('tagged_tmp.txt')
     os.chdir(PROJECT_ROOT)
 
-    with open('phrasing-tool/Phrasing/parsed_tmp.txt') as file:
+    with open(PROJECT_ROOT + '/manager/parsed_tmp.txt') as file:
         lines = [line.strip() for line in file]
     phraser = Phrasing()
     paused_text = phraser.insert_pauses(lines)
-    os.remove('phrasing-tool/Phrasing/parsed_tmp.txt')
+    os.remove(PROJECT_ROOT + '/manager/parsed_tmp.txt')
     return paused_text
 
 
