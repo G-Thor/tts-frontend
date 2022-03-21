@@ -68,7 +68,7 @@ cmdclass={
 		'sdist': gitcmd_sdist,
 	},
     name='tts-textprocessing',
-    version='0.1.21',
+    version='0.1.24',
 
     description='A TTS text pre-processing pipeline for Icelandic',
     long_description=long_description,
@@ -101,10 +101,18 @@ cmdclass={
 
     package_dir={'': 'src'},
     packages=find_packages(where='src', exclude=['src/ice-g2p/src/ice_g2p/fairseq_models/standard/model-256-.3-s-s.pt']),
-
+   # packages=find_packages(exclude=['src/ice-g2p/src/ice_g2p/fairseq_models/standard/model-256-.3-s-s.pt']),
     python_requires='>=3.6, <4',
 
-    # install_requires=['peppercorn'],  # check requirements!
+    # check requirements!
+    install_requires=[
+        'text-cleaner @ git+ssh://git@github.com:grammatek/text-cleaner.git',
+        'regina_normalizer @ git+https://github.com/grammatek/regina_normalizer',
+        'GreynirCorrect4LT @ git+https://github.com/grammatek/GreynirCorrect4LT',
+        'ice-g2p @ git+https://github.com/grammatek/ice-g2p',
+        'phrasing-tool @ git+ssh://git@github.com:grammatek/phrasing-tool.git'
+    ],
+
 
     entry_points={
         'console_scripts': [
