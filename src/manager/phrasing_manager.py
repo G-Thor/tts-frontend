@@ -8,7 +8,7 @@ import os
 from typing import Union
 from .tokens import Token, CleanToken, NormalizedToken, TagToken
 from .tokens_manager import extract_tagged_text
-from Phrasing.phrasing import Phrasing
+from phrasing.phrasing import Phrasing
 
 
 def phrase_text(tagged_text: str):
