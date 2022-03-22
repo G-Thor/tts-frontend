@@ -24,9 +24,10 @@ $ source <path/to/your/venv>/bin/activate
 (venv) $ pip install -e .
 ```
 
+Install for use in an existing project
+
 ```
-$ # install for use in an existing project, make sure you are in your project folder with the
-$ # virtual environment activated
+$ # make sure you are in your project folder with the virtual environment activated
 (venv) $ pip install git+https://github.com/grammatek/tts-frontend
 ```
 
