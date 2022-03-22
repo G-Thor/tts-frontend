@@ -1,4 +1,5 @@
 include pyproject.toml
+graft src/manager
 recursive-include src *.csv
 recursive-include src *.txt
 recursive-include src *.sh
