@@ -14,11 +14,11 @@
 
 """
 
-from tokens_manager import extract_text
-from cleaner_manager import clean_text, clean_html_text
-from normalizer_manager import normalize_token_list
-from phrasing_manager import phrase_token_list
-from g2p_manager import transcribe
+from .tokens_manager import extract_text
+from .cleaner_manager import clean_text, clean_html_text
+from .normalizer_manager import normalize_token_list
+from .phrasing_manager import phrase_token_list
+from .g2p_manager import transcribe
 
 
 def get_example_text():

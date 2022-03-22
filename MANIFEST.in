@@ -1,0 +1,8 @@
+include pyproject.toml
+graft src/manager
+recursive-include src *.csv
+recursive-include src *.txt
+recursive-include src *.sh
+recursive-include src *.jar
+exclude src/ice-g2p/src/ice_g2p/fairseq_models/standard/model-256-.3-s-s.pt
+exclude  src/ice-g2p/src/ice_g2p/fairseq_models/english/model-256-.3-s-s.pt
