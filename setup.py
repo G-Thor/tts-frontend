@@ -20,7 +20,7 @@ here = pathlib.Path(__file__).parent.resolve()
 
 long_description = (here / 'README.md').read_text(encoding='utf-8')
 
-
+"""
 def gitcmd_update_submodules():
 	'''	Check if the package is being deployed as a git repository. If so, recursively
 		update all dependencies.
@@ -60,13 +60,13 @@ class gitcmd_sdist(sdist):
 	def run(self):
 		gitcmd_update_submodules()
 		sdist.run(self)
-
+"""
 setup(
-cmdclass={
-		'develop': gitcmd_develop,
-		'install': gitcmd_install,
-		'sdist': gitcmd_sdist,
-	},
+#cmdclass={
+#		'develop': gitcmd_develop,
+#		'install': gitcmd_install,
+#		'sdist': gitcmd_sdist,
+#	},
     name='tts-textprocessing',
     version='0.1.24',
 
