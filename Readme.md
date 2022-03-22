@@ -9,7 +9,24 @@ This project provides a TTS textprocessing pipeline for Icelandic. The pipeline 
 The TTS frontend pipeline makes seamless text preprocessing for TTS using different submodules possible. It manages tags, e.g. SSML tags, that might be added or processed at different stages, and stores the processing history of each token from original input, through normalizing and correction to phonetic representation at the end of the pipeline.
 
 ## Prerequisites and setup
-How to install and run the project
+Assuming you have Python > 3.6 installed, create a virtual environment, e.g.
+
+This project is in a development state, as the subodules as well, and thus a PyPI package does not yet exist.
+You can install the project either by cloning the repository and install from the project root, or you can install
+directly from github:
+
+```
+$ # clone and install:
+$ git clone https://github.com/grammatek/tts-frontend.git
+$ cd tts-frontend
+$ # create a virtual env
+$ python3 -m venv <path/to/your/venv>
+$ source <path/to/your/venv>/bin/activate
+(venv) $ pip install -e .
+```
+
+**NOTE:** The setup works with `pip 21.3.1` , upgrading pip to a newer version caused fairseq
+installation to fail (see unresolved issue here: https://github.com/pytorch/fairseq/issues/3535)
 
 ## Usage
 How to use the project
