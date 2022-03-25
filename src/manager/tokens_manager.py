@@ -1,4 +1,4 @@
-from .tokens import Token, TagToken, NormalizedToken
+from tokens import Token, TagToken, NormalizedToken
 
 
 def init_tokens(text: str) -> list:

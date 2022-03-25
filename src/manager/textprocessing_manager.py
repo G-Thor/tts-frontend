@@ -8,12 +8,15 @@
     Please note that submodules might be published under the MIT License (https://opensource.org/licenses/MIT)
 
     This is the entry point to the execution of the whole pipeline, single modules may be evoked from each
-    manager (cleaner_manager, normalizer_manager, etc.). The main() function of this module is registered as
+    manager (cleaner_manager, normalizer_manager, etc.), but this module also contains methods to run single
+    modules or a part of the pipeline. The main() function of this module is registered as
     a console_script entry point in setup.py
 
 """
 import argparse
 
+"""
+from .unicode_maps import replacement_dictionary, post_dict_lookup
 from .settings import ManagerResources
 from .settings import (
     HTML_CLOSING_TAG_REPL,
@@ -22,17 +25,38 @@ from .settings import (
 )
 from .tts_tokenizer import Tokenizer
 from .tokens_manager import extract_text
-from .cleaner_manager import clean_text, clean_html_text, clean_html_string
+from .cleaner_manager import CleanerManager
 from .normalizer_manager import normalize_token_list
 from .phrasing_manager import phrase_token_list
 from .g2p_manager import transcribe
+"""
+
+from unicode_maps import replacement_dictionary, post_dict_lookup
+from settings import ManagerResources
+from settings import (
+    HTML_CLOSING_TAG_REPL,
+    PUNCTUATION,
+    VALID_CHARACTERS,
+)
+from tts_tokenizer import Tokenizer
+from tokens_manager import extract_text
+from cleaner_manager import CleanerManager
+from normalizer_manager import NormalizerManager
+from phrasing_manager import PhrasingManager
+from g2p_manager import G2PManager
 
 
 class Manager:
 
+    #TODO: generate default settings
+
     def __init__(self):
         self.resources = ManagerResources()
         self.tokenizer = Tokenizer(self.get_abbreviations(), self.get_nonending_abbreviations())
+        self.cleaner = CleanerManager()
+        self.normalizer = NormalizerManager()
+        self.phrasing = PhrasingManager()
+        self.g2p = G2PManager()
 
     def get_abbreviations(self):
         return self.resources.abbreviations
@@ -42,6 +66,12 @@ class Manager:
 
     def get_prondict(self):
         return self.resources.pron_dict
+
+    def get_replacement_dict(self):
+        return replacement_dictionary
+
+    def get_post_lookup_dict(self):
+        return post_dict_lookup
 
     def get_alphabet(self):
         return VALID_CHARACTERS
@@ -63,9 +93,9 @@ class Manager:
         :return: a list of CleanTokens representing a clean version of 'text'
         """
         if html:
-            clean = clean_html_text(text, alphabet=self.get_alphabet(), punct_set=self.get_punct_symbols())
+            clean = self.cleaner.clean_html_text(text)
         else:
-            clean = clean_text(text, alphabet=self.get_alphabet(), punct_set=self.get_punct_symbols())
+            clean = self.cleaner.clean_text(text)
         return clean
 
     def normalize(self, text: str, html=False) -> list:
@@ -80,12 +110,12 @@ class Manager:
         """
         raw_text = text
         if html:
-            raw_text = clean_html_string(text)
+            raw_text = self.cleaner.clean_html_text(text)
         clean = []
         tokenized = self.tokenizer.detect_sentences(raw_text)
         for sent in tokenized:
             clean.extend(self.clean(sent))
-        normalized = normalize_token_list(clean)
+        normalized = self.normalizer.normalize_token_list(clean)
         return normalized
 
     def phrase(self, text: str, html=False) -> list:
@@ -98,7 +128,7 @@ class Manager:
         ssml-tags or pauses. Includes processing history of each token.
         """
         normalized = self.normalize(text, html)
-        phrased = phrase_token_list(normalized)
+        phrased = self.phrasing.phrase_token_list(normalized)
         return phrased
 
     def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False, syllab_stress=False) -> list:
@@ -122,7 +152,7 @@ class Manager:
         if spellcheck:
             pass
 
-        transcribed = transcribe(normalized, syllab_stress)
+        transcribed = self.g2p.transcribe(normalized, syllab_stress)
         return transcribed
 
 
@@ -134,13 +164,13 @@ def parse_args():
 
 
 def main():
-    #input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
-    args = parse_args()
-    if not args.input_text:
-        print('please provede string to process!')
-        exit()
+    input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
+    #args = parse_args()
+    #if not args.input_text:
+    #    print('please provede string to process!')
+    #    exit()
 
-    input_text = args.input_text
+    #input_text = args.input_text
     manager = Manager()
     clean_input = manager.clean(input_text)
     print('==========CLEAN=============')
