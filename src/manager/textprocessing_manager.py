@@ -48,8 +48,6 @@ from g2p_manager import G2PManager
 
 class Manager:
 
-    #TODO: generate default settings
-
     def __init__(self):
         self.resources = ManagerResources()
         self.tokenizer = Tokenizer(self.get_abbreviations(), self.get_nonending_abbreviations())
@@ -81,6 +79,9 @@ class Manager:
 
     def get_html_mapping(self):
         return HTML_CLOSING_TAG_REPL
+
+    def set_g2p_syllab_stress(self, value: bool):
+        self.g2p.set_syllab_stress(value)
 
     def clean(self, text: str, html=False) -> list:
         """
@@ -131,7 +132,7 @@ class Manager:
         phrased = self.phrasing.phrase_token_list(normalized)
         return phrased
 
-    def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False, syllab_stress=False) -> list:
+    def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False) -> list:
         """
         Transcribes 'text' using the SAMPA phonetic alphabet.
 
@@ -152,7 +153,7 @@ class Manager:
         if spellcheck:
             pass
 
-        transcribed = self.g2p.transcribe(normalized, syllab_stress)
+        transcribed = self.g2p.transcribe(normalized)
         return transcribed
 
 
@@ -181,7 +182,8 @@ def main():
     phrased = manager.phrase(input_text)
     print('==========PHRASED=============')
     print(extract_text(phrased, False))
-    transcribed = manager.transcribe(input_text, syllab_stress=True)
+    manager.set_g2p_syllab_stress(True)
+    transcribed = manager.transcribe(input_text)
     print('==========TRANSCRIBED=============')
     print(extract_text(transcribed, False))
 
