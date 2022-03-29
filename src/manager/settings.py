@@ -17,7 +17,7 @@
 
 import os
 import logging
-from unicode_maps import replacement_dictionary, post_dict_lookup
+from .unicode_maps import replacement_dictionary, post_dict_lookup
 
 # Set package path
 package_path = os.path.dirname(os.path.abspath(__file__))

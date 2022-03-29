@@ -5,8 +5,8 @@ where it assumes a good place for a speech pause.
 """
 import os
 
-from tokens import TagToken
-from tokens_manager import extract_tagged_text
+from .tokens import TagToken
+from .tokens_manager import extract_tagged_text
 from phrasing.phrasing import Phrasing
 
 

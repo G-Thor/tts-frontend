@@ -15,7 +15,7 @@
 """
 import argparse
 
-"""
+
 from .unicode_maps import replacement_dictionary, post_dict_lookup
 from .settings import ManagerResources
 from .settings import (
@@ -26,24 +26,9 @@ from .settings import (
 from .tts_tokenizer import Tokenizer
 from .tokens_manager import extract_text
 from .cleaner_manager import CleanerManager
-from .normalizer_manager import normalize_token_list
-from .phrasing_manager import phrase_token_list
-from .g2p_manager import transcribe
-"""
-
-from unicode_maps import replacement_dictionary, post_dict_lookup
-from settings import ManagerResources
-from settings import (
-    HTML_CLOSING_TAG_REPL,
-    PUNCTUATION,
-    VALID_CHARACTERS,
-)
-from tts_tokenizer import Tokenizer
-from tokens_manager import extract_text
-from cleaner_manager import CleanerManager
-from normalizer_manager import NormalizerManager
-from phrasing_manager import PhrasingManager
-from g2p_manager import G2PManager
+from .normalizer_manager import NormalizerManager
+from .phrasing_manager import PhrasingManager
+from .g2p_manager import G2PManager
 
 
 class Manager:
