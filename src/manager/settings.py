@@ -17,6 +17,7 @@
 
 import os
 import logging
+from unicode_maps import replacement_dictionary, post_dict_lookup
 
 # Set package path
 package_path = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +39,11 @@ PRON_DICT_FILE = os.path.join(package_path, 'resources/ice_pron_dict_standard_cl
 
 ##########################
 
+# Replacement dictionary for unicode characters that should not 'make it' through text cleaning
+CHAR_REPLACEMENT_DICT = replacement_dictionary
+# Post processing, last check for characters to replace
+POST_DICT = post_dict_lookup
+
 # Characters valid throughout the pipeline. All other characters will be deleted or replaced in the text-cleaning
 # module, except when they occur in tokens in valid dictionaries (abbreviations or pronunciation dictionaries)
 # Note that the following characters from the English alphabet are not included: c, q, w, z
@@ -45,7 +51,7 @@ VALID_CHARACTERS = ['a', 'á', 'b', 'd', 'ð', 'e', 'é', 'f', 'g', 'h', 'i', '�
                       'n', 'o', 'ó', 'p', 'r', 's', 't', 'u', 'ú', 'v', 'y', 'ý', 'þ', 'æ', 'ö', 'x']
 
 # punctuation symbols not deleted or replaced in the text-cleaner
-PUNCTUATION = ['.',',',':','!','?', '/']
+PUNCTUATION = ['.',',',':','!','?', '/', '-']
 
 # Default behaviour is to replace html closing tags with a full stop. Edit this map to change replacements
 HTML_CLOSING_TAG_REPL = {
