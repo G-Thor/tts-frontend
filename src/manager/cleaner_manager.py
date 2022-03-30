@@ -25,8 +25,8 @@ SSML_LANG_END = '</lang>'
 class CleanerManager:
     """Connects the pipeline to the text-cleaner module and manages input and output"""
 
-    def __init__(self):
-        self.cleaner = TextCleaner(punct_set=PUNCTUATION)
+    def __init__(self, repl_dict: dict, post_lookup_dict: dict):
+        self.cleaner = TextCleaner(replacement_dict=repl_dict, post_dict=post_lookup_dict, punct_set=PUNCTUATION)
         self.html_cleaner = HtmlCleaner()
 
     def clean_text(self, text: str) -> list:

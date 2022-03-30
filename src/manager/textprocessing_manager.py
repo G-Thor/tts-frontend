@@ -36,7 +36,7 @@ class Manager:
     def __init__(self):
         self.resources = ManagerResources()
         self.tokenizer = Tokenizer(self.get_abbreviations(), self.get_nonending_abbreviations())
-        self.cleaner = CleanerManager()
+        self.cleaner = CleanerManager(self.get_replacement_dict(), self.get_post_lookup_dict())
         self.normalizer = NormalizerManager()
         self.phrasing = PhrasingManager()
         self.g2p = G2PManager()
