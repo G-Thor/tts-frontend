@@ -99,6 +99,7 @@ setup(
 
     keywords='text-processing, text-normalization, tokenizing, tts',
 
+    include_package_data=True,
     package_dir={'': 'src'},
     packages=find_packages(where='src', exclude=['src/ice-g2p/src/ice_g2p/fairseq_models/standard/model-256-.3-s-s.pt']),
    # packages=find_packages(exclude=['src/ice-g2p/src/ice_g2p/fairseq_models/standard/model-256-.3-s-s.pt']),
