@@ -1,6 +1,6 @@
 [submodule "src/text-cleaner"]
 	path = src/text-cleaner
-	url = git@github.com:grammatek/text-cleaner.git
+	url = https://github.com/grammatek/text-cleaner
 [submodule "src/regina_normalizer"]
 	path = src/regina_normalizer
 	url = https://github.com/grammatek/regina_normalizer
@@ -12,4 +12,4 @@
 	url = https://github.com/grammatek/ice-g2p
 [submodule "src/phrasing-tool"]
 	path = src/phrasing-tool
-	url = git@github.com:grammatek/phrasing-tool.git
+	url = https://github.com/grammatek/phrasing-tool
