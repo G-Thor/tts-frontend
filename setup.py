@@ -106,11 +106,11 @@ setup(
 
     # check requirements!
     install_requires=[
-        'text-cleaner @ git+https://git@github.com/grammatek/text-cleaner@tts-frontend-dev',
+        'text-cleaner @ git+https://github.com/grammatek/text-cleaner@tts-frontend-dev',
         'regina_normalizer @ git+https://github.com/grammatek/regina_normalizer@tts-frontend',
         'reynir-correct @ git+https://github.com/grammatek/GreynirCorrect4LT@tts_frontend',
         'ice-g2p @ git+https://github.com/grammatek/ice-g2p',
-        'phrasing-tool @ git+https://git@github.com/grammatek/phrasing-tool@tts-frontend'
+        'phrasing-tool @ git+https://github.com/grammatek/phrasing-tool@tts-frontend'
     ],
 
 
