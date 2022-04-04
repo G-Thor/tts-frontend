@@ -231,8 +231,10 @@ class Tokenizer:
 
 
 def main():
-    input_text = 'hvort viltu fjórða, fimmta eða sjötta valkostinn?'
-    tokenizer = Tokenizer()
+    from settings import ManagerResources
+    manager = ManagerResources()
+    input_text = 'einmana, verkefnalaus og vinalaus," sagði hún'
+    tokenizer = Tokenizer(manager.abbreviations, manager.nonending_abbreviations)
     sentences = tokenizer.detect_sentences(input_text)
     for sent in sentences:
         print(sent)

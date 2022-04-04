@@ -7,14 +7,14 @@ possibly contain TagTokens, created from SSML-tags inserted by the cleaner modul
 
 from typing import Tuple
 
-from .settings import (
+from settings import (
     HTML_CLOSING_TAG_REPL,
     PUNCTUATION,
     VALID_CHARACTERS,
 )
 
-from .tokens import CleanToken, TagToken
-from .tokens_manager import init_tokens
+from tokens import CleanToken, TagToken
+from tokens_manager import init_tokens
 from text_cleaner import TextCleaner
 from text_cleaner import HtmlCleaner
 

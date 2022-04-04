@@ -15,20 +15,21 @@
 """
 import argparse
 
+import time
 
-from .unicode_maps import replacement_dictionary, post_dict_lookup
-from .settings import ManagerResources
-from .settings import (
+from unicode_maps import replacement_dictionary, post_dict_lookup
+from settings import ManagerResources
+from settings import (
     HTML_CLOSING_TAG_REPL,
     PUNCTUATION,
     VALID_CHARACTERS,
 )
-from .tts_tokenizer import Tokenizer
-from .tokens_manager import extract_text
-from .cleaner_manager import CleanerManager
-from .normalizer_manager import NormalizerManager
-from .phrasing_manager import PhrasingManager
-from .g2p_manager import G2PManager
+from tts_tokenizer import Tokenizer
+from tokens_manager import extract_text, align_tokens
+from cleaner_manager import CleanerManager
+from normalizer_manager import NormalizerManager
+from phrasing_manager import PhrasingManager
+from g2p_manager import G2PManager
 
 
 class Manager:
@@ -94,14 +95,10 @@ class Manager:
         ssml-tags or pauses. Includes processing history of each token.
         of each token
         """
-        raw_text = text
-        if html:
-            raw_text = self.cleaner.clean_html_text(text)
-        clean = []
-        tokenized = self.tokenizer.detect_sentences(raw_text)
-        for sent in tokenized:
-            clean.extend(self.clean(sent))
-        normalized = self.normalizer.normalize_token_list(clean)
+        clean = self.clean(text, html)
+        tokenized = self.tokenizer.detect_sentences(extract_text(clean))
+        clean_tokenized = align_tokens(clean, tokenized)
+        normalized = self.normalizer.normalize_token_list(clean_tokenized)
         return normalized
 
     def phrase(self, text: str, html=False) -> list:
@@ -150,7 +147,17 @@ def parse_args():
 
 
 def main():
-    input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
+    #input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
+    input_text1 = 'Anna Guðný Guðmundsdóttir, píanóleikari, fæddist 6. september 1958 í Reykjavík og ólst upp á Háaleitisbraut. Hún var í sveit í fimm ár að Fagurhólsmýri í Öræfunum, rétt áður en síðustu árnar voru brúaðar og hringvegurinn var kláraður. Þar var hún kúarektor, sinnti bústörfum, afgreiddi bensín og spilaði Bach á gamalt fótstigið orgel. ' \
+                 'Anna Guðný hóf snemma píanónám í Barnamúsíkskólanum hjá Stefáni Edelstein, gekk í Álftamýrarskóla og lauk stúdentsprófi frá Menntaskólanum við Hamrahlíð 1977. Því næst lauk Anna burtfararprófi frá Tónlistarskólanum í Reykjavík 1979, þar sem Hermína S. Kristjánsson, Jón Nordal og Margrét Eiríksdóttir voru meðal hennar leiðbeinenda. Loks lauk Anna Post Graduate Diploma frá Guildhall School of Music and Drama í London árið 1982. Anna Guðný lagði sérstaka áherslu á kammermúsík og meðleik með söng og þar hófst farsælt samstarf hennar og söngkonunnar Sigrúnar Hjálmtýsdóttur, Diddú. Anna Guðný sótti námskeið og einkatíma hjá Erik Werba, Rudolf Jansen, György Sebök, John Lill og fleiri kennurum. ' \
+                 'Um langt árabil hefur Anna Guðný sinnt kennstustörfum, var píanókennari við Tónlistarskólann í Reykjavík og einnig við Menntaskólann í tónlist. Hún var lausráðin píanóleikari með Sinfóníuhljómsveit Íslands frá 1985, var í Íslensku hljómsveitinni 1982 til 1990 og Kammersveit Reykjavíkur frá 1982. Hún var meðleikari við tónlistardeild Listaháskóla Íslands frá 2001 til 2005, en hefur verið frá því þá fastráðin hjá Sinfóníuhljómsveit Íslands. ' \
+                 'Anna Guðný hefur víða komið fram á sínum glæsta ferli; fjölda kammertónleika með ýmsum söngvurum og hljóðfæraleikurum, á vegum Kammermúsíkklúbbsins, í Tíbrá tónleikaröðinni, sem einleikari á Sinfóníutónleikum og tekið þátt í tónlistarhátíðum um allt land. Anna Guðný hefur einnig leikið á tónleikum um mestalla Evrópu, Kína, Japan, á Norðurlöndunum og víðar. Að auki hefur hún spilað inn á um 30 hljómplötur með ýmsum listamönnum og gefið út rómaðar einleiksplötur. ' \
+                 'Anna Guðný hefur þrisvar verið tilnefnd til Íslensku tónlistarverðlaunanna og hlaut verðlaunin árið 2008, sem flytjandi ársins, fyrir heildarflutning á tónverkinu Tuttugu tillit til Jesúbarnsins eftir Oliver Messiaen. Hún hlaut starfslaun menntamálaráðuneytisins 1995 og 2000, hlaut orðu Hvítu rósarinnar frá finnska ríkinu 1997, hún hefur sinnt tónlistarráðgjöf á safninu á Gljúfrasteini um árabil og var bæjarlistamaður Mosfellsbæjar 2002. Hún er og hefur verið mikilvægur og sterkur hlekkur í íslensku tónlistarlífi í fjóra áratugi. ' \
+                 'Anna Guðný Guðmundsdóttir er handhafi heiðursverðlauna Íslensku tónlistarverðlaunanna árið 2022. „Ég hef verið umvafin tónlist frá því ég man eftir mér og það hefur verið mín gæfa. Ég trúi því að sá sem lifir í tónlist þurfi aldrei að vera einmana, verkefnalaus og vinalaus,“ sagði hún meðal annars í ræðu sinni. Hún hefur stigið til hliðar vegna veikinda en þakkar þeim sem hafa átt samleið með henni í gegnum árin. „Tónlistin getur bæði sefað og sameinað. Takk fyrir mig,“ voru lokaorð hennar.'
+
+    input_text = 'einmana, verkefnalaus og vinalaus,“ sagði hún' # phrasing res: 'einmana' 'verkefnalaus' '<pau>' 'og' 'vinalaus<pau><sp>' 'sagði' 'hún'
+    test_sent2 = 'Reykjavíkur frá 1982. Hún var meðleikari' # need to split the dot after the year digit, if followed by an upper case letter
+    print('tokens in input: ' + str(len(input_text.split())))
     #args = parse_args()
     #if not args.input_text:
     #    print('please provede string to process!')
@@ -158,19 +165,29 @@ def main():
 
     #input_text = args.input_text
     manager = Manager()
+    start1 = time.time()
     clean_input = manager.clean(input_text)
     print('==========CLEAN=============')
     print(extract_text(clean_input))
+    start2 = time.time()
     normalized_input = manager.normalize(input_text)
     print('==========NORMALIZED=============')
     print(extract_text(normalized_input))
+    start3 = time.time()
     phrased = manager.phrase(input_text)
     print('==========PHRASED=============')
     print(extract_text(phrased, False))
+    start4 = time.time()
     manager.set_g2p_syllab_stress(True)
-    transcribed = manager.transcribe(input_text)
+    transcribed = manager.transcribe(input_text, phrasing=False)
     print('==========TRANSCRIBED=============')
     print(extract_text(transcribed, False))
+    start5 = time.time()
+
+    print('CLEAN: ' + str(start2 - start1))
+    print('NORMALIZE: ' + str(start3 - start2))
+    print('PHRASE: ' + str(start4 - start3))
+    print('TRANSCRIBE: ' + str(start5 - start4))
 
 
 if __name__ == '__main__':
