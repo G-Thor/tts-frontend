@@ -4,13 +4,17 @@ a list of NormalizedTokens, the same as the input from the normalizer_manager. T
 where it assumes a good place for a speech pause.
 """
 import os
-
-from .tokens import TagToken
+from .tokens import NormalizedToken, TagToken
 from .tokens_manager import extract_tagged_text
 from phrasing.phrasing import Phrasing
 
+# used to replace punctuation in normalized text if we don't perform real phrasing analysis
+SIL_TAG = '<sil>'
 
 class PhrasingManager:
+
+    def is_punct(self, tok: NormalizedToken):
+        return tok.pos == '.' or tok.pos == ',' or tok.pos == 'pg' or tok.name == '/'
 
     def phrase_text(self, tagged_text: str):
         MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -23,14 +27,13 @@ class PhrasingManager:
         os.system(comm)
         os.remove('tagged_tmp.txt')
         os.chdir(PROJECT_ROOT)
-
         with open(PROJECT_ROOT + '/manager/parsed_tmp.txt') as file:
             lines = [line.strip() for line in file]
         phraser = Phrasing()
         paused_text = phraser.insert_pauses(lines)
         os.remove(PROJECT_ROOT + '/manager/parsed_tmp.txt')
-        return paused_text
 
+        return paused_text
 
     def phrase_token_list(self, normalized_tokens: list) -> list:
         """Send the pos-tagged text in normalized tokens through
@@ -55,9 +58,25 @@ class PhrasingManager:
                 # we have a new tag token from the phrasing module
                 tag_tok = TagToken(phrased_list[phrase_index], token.token_index)
                 phrased_token_list.append(tag_tok)
-                if token.pos != '.' and token.pos != ',' and token.name != '/':
+                # if we have a 'pure' punctuation token, do nothing further, but if the tag-token was added
+                # in between tokens as a result of phrasing, add the normalized token to the list as well
+                if not self.is_punct(token):
                     phrased_token_list.append(token)
                     phrase_index += 1
 
             phrase_index += 1
+        return phrased_token_list
+
+    def add_pause_tags(self, normalized_tokens: list) -> list:
+        """Instead of performing a phrasing analysis, this is a short-cut to only insert pause tags
+        for punctuation marks left in the normalized token list."""
+
+        phrased_token_list = []
+        for i, token in enumerate(normalized_tokens):
+            if self.is_punct(token):
+                tag_tok = TagToken(SIL_TAG, token.token_index)
+                phrased_token_list.append(tag_tok)
+            else:
+                phrased_token_list.append(token)
+
         return phrased_token_list

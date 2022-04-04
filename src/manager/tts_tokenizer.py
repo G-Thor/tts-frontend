@@ -112,8 +112,13 @@ class Tokenizer:
     @staticmethod
     def ensure_full_stop(tmp_string: str, token: str) -> str:
         """ Finish a sentence, take a look if the tmp_string content has a correct
-        sentence ending, if not, add a ' .' to the sentence and return."""
+        sentence ending, if not, add a ' .' to the sentence and return.
+        #TODO: at the moment we add a space before an existing dot at the end, but do not add one if missing. Should we do that again?"""
         tmp_string += token.strip()
+        # at the end of a sentence we detach the final dot from the last token
+        # TODO: might not always be feasible?
+        if re.search('[^\\s]\\.$', tmp_string):
+            tmp_string = tmp_string[:-1] + ' .'
        # if not tmp_string.endswith(' .') and not tmp_string.endswith(' . \"'):
        #     tmp_string = tmp_string[:-1] + ' .'
         return tmp_string
@@ -183,6 +188,10 @@ class Tokenizer:
         """
         if len(token) <= 1:
             return False
+        # possibly a year at the end of a sentenc? If yes, we want the dot to be detached
+        # we only consider 4 digit years up to year 2099
+        if re.fullmatch('(1\\d{3})|(20\\d{2})\\.', token):
+            return True
         # a simple cardinal or ordinal number
         if re.fullmatch('\\d+\\.?', token):
             return False
@@ -231,8 +240,10 @@ class Tokenizer:
 
 
 def main():
-    input_text = 'hvort viltu fjórða, fimmta eða sjötta valkostinn?'
-    tokenizer = Tokenizer()
+    from settings import ManagerResources
+    manager = ManagerResources()
+    input_text = 'Reykjavíkur frá 1982. Hún var meðleikari'
+    tokenizer = Tokenizer(manager.abbreviations, manager.nonending_abbreviations)
     sentences = tokenizer.detect_sentences(input_text)
     for sent in sentences:
         print(sent)

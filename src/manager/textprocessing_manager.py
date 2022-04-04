@@ -15,7 +15,6 @@
 """
 import argparse
 
-
 from .unicode_maps import replacement_dictionary, post_dict_lookup
 from .settings import ManagerResources
 from .settings import (
@@ -24,7 +23,7 @@ from .settings import (
     VALID_CHARACTERS,
 )
 from .tts_tokenizer import Tokenizer
-from .tokens_manager import extract_text
+from .tokens_manager import extract_text, align_tokens
 from .cleaner_manager import CleanerManager
 from .normalizer_manager import NormalizerManager
 from .phrasing_manager import PhrasingManager
@@ -94,15 +93,12 @@ class Manager:
         ssml-tags or pauses. Includes processing history of each token.
         of each token
         """
-        raw_text = text
-        if html:
-            raw_text = self.cleaner.clean_html_text(text)
-        clean = []
-        tokenized = self.tokenizer.detect_sentences(raw_text)
-        for sent in tokenized:
-            clean.extend(self.clean(sent))
-        normalized = self.normalizer.normalize_token_list(clean)
-        return normalized
+        clean = self.clean(text, html)
+        tokenized = self.tokenizer.detect_sentences(extract_text(clean))
+        clean_tokenized = align_tokens(clean, tokenized)
+        normalized = self.normalizer.normalize_token_list(clean_tokenized)
+        normalized_with_tag_tokens = self.phrasing.add_pause_tags(normalized)
+        return normalized_with_tag_tokens
 
     def phrase(self, text: str, html=False) -> list:
         """
@@ -151,6 +147,7 @@ def parse_args():
 
 def main():
     input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
+
     #args = parse_args()
     #if not args.input_text:
     #    print('please provede string to process!')
@@ -168,7 +165,7 @@ def main():
     print('==========PHRASED=============')
     print(extract_text(phrased, False))
     manager.set_g2p_syllab_stress(True)
-    transcribed = manager.transcribe(input_text)
+    transcribed = manager.transcribe(input_text, phrasing=False)
     print('==========TRANSCRIBED=============')
     print(extract_text(transcribed, False))
 
