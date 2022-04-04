@@ -5,10 +5,10 @@ version. The list will also possibly contain TagTokens, created from SSML-tags i
 the normalizer module, as well as pos-tags delivered by the normalizer module.
 """
 from typing import Union, Tuple
-from tokens import Token, CleanToken, NormalizedToken, TagToken
-from tokens_manager import extract_text
-from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import abbr_functions
-from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import number_functions
+from .tokens import Token, CleanToken, NormalizedToken, TagToken
+from .tokens_manager import extract_text
+from regina_normalizer import abbr_functions
+from regina_normalizer import number_functions
 
 
 class NormalizerManager:

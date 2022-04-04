@@ -1,6 +1,6 @@
 import logging
 import re
-from tokens import Token, TagToken, CleanToken, NormalizedToken
+from .tokens import Token, TagToken, CleanToken, NormalizedToken
 
 
 def init_tokens(text: str) -> list:

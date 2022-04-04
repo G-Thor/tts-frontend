@@ -4,8 +4,8 @@ a list of NormalizedTokens, the same as the input from the normalizer_manager. T
 where it assumes a good place for a speech pause.
 """
 import os
-from tokens import NormalizedToken, TagToken
-from tokens_manager import extract_tagged_text
+from .tokens import NormalizedToken, TagToken
+from .tokens_manager import extract_tagged_text
 from phrasing.phrasing import Phrasing
 
 # used to replace punctuation in normalized text if we don't perform real phrasing analysis
