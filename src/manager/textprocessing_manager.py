@@ -35,7 +35,8 @@ class Manager:
     def __init__(self):
         self.resources = ManagerResources()
         self.tokenizer = Tokenizer(self.get_abbreviations(), self.get_nonending_abbreviations())
-        self.cleaner = CleanerManager(self.get_replacement_dict(), self.get_post_lookup_dict())
+        cleaner_lexicon = self.get_default_cleaner_lexicon()
+        self.cleaner = CleanerManager(self.get_replacement_dict(), self.get_post_lookup_dict(), cleaner_lexicon)
         self.normalizer = NormalizerManager()
         self.phrasing = PhrasingManager()
         self.g2p = G2PManager()
@@ -63,6 +64,13 @@ class Manager:
 
     def get_html_mapping(self):
         return HTML_CLOSING_TAG_REPL
+
+    def get_default_cleaner_lexicon(self) -> list:
+        lexicon = list(self.get_prondict().keys())
+        lexicon.extend(self.get_abbreviations())
+        lexicon.extend(self.get_nonending_abbreviations())
+        print('we have kwst. in lexicon! ' + str('kwst.' in lexicon))
+        return lexicon
 
     def set_g2p_syllab_stress(self, value: bool):
         self.g2p.set_syllab_stress(value)
@@ -146,7 +154,8 @@ def parse_args():
 
 
 def main():
-    input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
+    input_text1 = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
+    input_text = 'Sími 570 4509'
 
     #args = parse_args()
     #if not args.input_text:
