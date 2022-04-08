@@ -18,7 +18,7 @@ def init_tokens(text: str) -> list:
     return tokens_list
 
 
-def extract_text(token_list: list, ignore_tags=True) -> str:
+def extract_text(token_list: list, ignore_tags=True, word_separator='') -> str:
     token_strings = []
     for elem in token_list:
         if isinstance(elem, TagToken) and ignore_tags:
@@ -26,7 +26,10 @@ def extract_text(token_list: list, ignore_tags=True) -> str:
         if not elem.name:
             continue
         token_strings.append(elem.name)
-    return ' '.join(token_strings)
+    if word_separator:
+        return f' {word_separator} '.join(token_strings)
+    else:
+        return ' '.join(token_strings)
 
 
 def extract_tagged_text(token_list: list, ignore_tags=True) -> str:
