@@ -32,13 +32,15 @@ from .g2p_manager import G2PManager
 
 class Manager:
 
-    def __init__(self):
+    def __init__(self, custom_pron_dict={}):
         self.resources = ManagerResources()
         self.tokenizer = Tokenizer(self.get_abbreviations(), self.get_nonending_abbreviations())
-        self.cleaner = CleanerManager(self.get_replacement_dict(), self.get_post_lookup_dict())
+        cleaner_lexicon = self.get_default_cleaner_lexicon()
+        self.cleaner = CleanerManager(self.get_replacement_dict(), self.get_post_lookup_dict(), cleaner_lexicon)
         self.normalizer = NormalizerManager()
         self.phrasing = PhrasingManager()
         self.g2p = G2PManager()
+        self.g2p.set_custom_dict(custom_pron_dict)
 
     def get_abbreviations(self):
         return self.resources.abbreviations
@@ -64,8 +66,23 @@ class Manager:
     def get_html_mapping(self):
         return HTML_CLOSING_TAG_REPL
 
-    def set_g2p_syllab_stress(self, value: bool):
-        self.g2p.set_syllab_stress(value)
+    def get_default_cleaner_lexicon(self) -> list:
+        lexicon = list(self.get_prondict().keys())
+        lexicon.extend(self.get_abbreviations())
+        lexicon.extend(self.get_nonending_abbreviations())
+        return lexicon
+
+    def set_g2p_custom_dict(self, pron_dict: dict):
+        self.g2p.set_custom_dict(pron_dict)
+
+    def set_g2p_syllab_symbol(self, syllab_symbol: str):
+        self.g2p.set_syllab_symbol(syllab_symbol)
+
+    def set_g2p_stress(self, value: bool):
+        self.g2p.set_stress(value)
+
+    def set_g2p_word_separator(self, word_sep: str):
+        self.g2p.set_word_separator(word_sep)
 
     def clean(self, text: str, html=False) -> list:
         """
@@ -146,7 +163,8 @@ def parse_args():
 
 
 def main():
-    input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
+    input_text1 = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
+    input_text = 'Sími 570 4509'
 
     #args = parse_args()
     #if not args.input_text:
@@ -164,7 +182,7 @@ def main():
     phrased = manager.phrase(input_text)
     print('==========PHRASED=============')
     print(extract_text(phrased, False))
-    manager.set_g2p_syllab_stress(True)
+    manager.set_g2p_syllab_symbol('.')
     transcribed = manager.transcribe(input_text, phrasing=False)
     print('==========TRANSCRIBED=============')
     print(extract_text(transcribed, False))

@@ -4,6 +4,7 @@ a list of NormalizedTokens, composed from the original tokens, possibly a cleane
 version. The list will also possibly contain TagTokens, created from SSML-tags inserted by the cleaner module or
 the normalizer module, as well as pos-tags delivered by the normalizer module.
 """
+import difflib
 from typing import Union, Tuple
 from .tokens import Token, CleanToken, NormalizedToken, TagToken
 from .tokens_manager import extract_text
@@ -20,6 +21,7 @@ class NormalizerManager:
         Example:
         sent == Það voru t.d. 5 atriði
         prenorm_sent == Það voru til dæmis 5 atriði
+
         return [('Það', 'Það'), ('voru', 'voru'), ('t.d.', 'til dæmis'), ('5', '5), ('atriði', 'atriði')]
         :param prenorm_sent:
         :param sent:
@@ -27,26 +29,31 @@ class NormalizerManager:
         """
         norm_tuples = []
         sent_arr = sent.split()
-        j = 0
-        for i in range(len(sent_arr)):
-            if prenorm_arr[j] == sent_arr[i]:
-                norm_tuples.append((sent_arr[i], prenorm_arr[j]))
-                j += 1
-            else:
-                abbr = sent_arr[i]
-                expansion = prenorm_arr[j]
-                j += 1
-                while len(sent_arr) > i + 1 and sent_arr[i + 1] != prenorm_arr[j]:
-                    expansion += ' ' + prenorm_arr[j]
-                    j += 1
-                if i == len(sent_arr) - 1:
-                    while j < len(prenorm_arr):
-                        expansion += ' ' + prenorm_arr[j]
-                        j += 1
-                norm_tuples.append((abbr, expansion))
+
+        diff = difflib.ndiff(sent_arr, prenorm_arr)
+        # a token from sent_arr not occurring in the prenorm_arr, store while processing the same/near positions in prenorm_arr
+        current_key = ''
+        # a token from prenorm_arr not occurring in the sent_arr, store while processing the same/near positions in sent_arr
+        current_value = ''
+
+        for elem in diff:
+            if elem[0] == ' ':
+                if current_key and current_value:
+                    # add the orignal (key) - prenorm (value) tuple to the results
+                    norm_tuples.append((current_key.strip(), current_value.strip()))
+                    current_key = ''
+                    current_value = ''
+                norm_tuples.append((elem[2:], elem[2:]))
+            elif elem[0] == '-':
+                # elem in list1 but not in list2
+                current_key += ' ' + str(elem[2:])
+            elif elem[0] == '+':
+                # elem in list2 but not in list1
+                current_value += ' ' + str(elem[2:])
+        if current_key and current_value:
+            norm_tuples.append((current_key.strip(), current_value.strip()))
 
         return norm_tuples
-
 
     def normalize(self, text: str) -> Tuple:
         abbr_sent = abbr_functions.replace_abbreviations(text, "other")
@@ -55,7 +62,6 @@ class NormalizerManager:
         normalized = number_functions.handle_sentence(expanded_abbr.strip(), "other")
 
         return prenorm_tuples, normalized
-
 
     def init_normalized(self, token: Union[Token, CleanToken], word: str, pos: str) -> Union[TagToken, NormalizedToken]:
 
@@ -67,7 +73,6 @@ class NormalizerManager:
             norm_tok.set_pos(pos)
         return norm_tok
 
-
     def normalize_token_list(self, token_list: list) -> list:
         """Normalizes the text represented by the token list,
         assembles a new list of NormalizedTokens and TagTokens, if any are in the token list or if tags are added
@@ -76,9 +81,14 @@ class NormalizerManager:
         normalized_tokens = []
         text = extract_text(token_list)
         pre_normalized, final_normalized = self.normalize(text)
+        pre_norm_index = 0
         norm_index = 0
+        i = 0
         # iterate through the original tokens
-        for i, tok in enumerate(token_list):
+        for tok in token_list:
+            if i >= len(token_list):
+                # we already processed the last token during previous iteration
+                break
             norm_index_counter = 0 # indicates how many indices further we move internally in the normalized list during each iteration
             if isinstance(tok, TagToken):
                 normalized_tokens.append(tok)
@@ -122,7 +132,7 @@ class NormalizerManager:
 
 
                 # (-,til) vs. (til, til)
-                elif pre_normalized[i][0] == original_token and normalized_base_token == pre_normalized[i][1]:
+                elif pre_normalized[pre_norm_index][0] == original_token and normalized_base_token == pre_normalized[pre_norm_index][1]:
                     wrd = final_normalized[norm_index][1]
                     punct = ''
                     if wrd.endswith(',') or wrd.endswith('.'):
@@ -139,8 +149,8 @@ class NormalizerManager:
 
                 # (m/s,metrar á sekúndu) vs. (metrar, metrar, nkfn) (á, á, af), (sekúndu, sekúndu, nveþ)
                 # -> three tokens with original 'm/s' and the same index as 'm/s'
-                elif pre_normalized[i][0] == original_token and len(pre_normalized[i][1].split()) > 1:
-                    for j, wrd in enumerate(pre_normalized[i][1].split()):
+                elif pre_normalized[pre_norm_index][0] == original_token and len(pre_normalized[pre_norm_index][1].split()) > 1:
+                    for j, wrd in enumerate(pre_normalized[pre_norm_index][1].split()):
                         if final_normalized[norm_index+j][0] == wrd:
                             norm_wrd = final_normalized[norm_index+j][1]
                             punct = ''
@@ -160,12 +170,39 @@ class NormalizerManager:
 
                         else:
                             break
+                elif original_token != pre_normalized[pre_norm_index][0]:
+                    # we have some changes during pre-normalization, e.g. from '570 1234' -> '570-1234'
+                    # so we need to reconstruct the original and clean tokens
+                    new_clean = pre_normalized[pre_norm_index][0]
+                    new_original = Token(pre_normalized[pre_norm_index][0])
+                    new_original.set_index(tok.token_index)
+                    span_start = tok.get_original_token().start
+                    span_end = tok.get_original_token().end
+                    new_token_name = original_token
+                    while new_original.name != new_token_name:
+                        i += 1
+                        continued_token = token_list[i]
+                        new_token_name += ' ' + continued_token.name
+                        span_end = continued_token.get_original_token().end
+                    new_original.set_span(span_start, span_end)
+                    new_clean_tok = CleanToken(new_original)
+                    new_clean_tok.set_clean(new_clean)
+                    new_clean_tok.set_index(new_original.token_index)
+                    norm_tok = self.init_normalized(new_original, final_normalized[norm_index][1], final_normalized[norm_index][2])
+                    normalized_tokens.append(norm_tok)
+                    counter_subtraction = len(new_original.name.split()) - 1
+                    pre_norm_index -= counter_subtraction
+                    norm_index -= counter_subtraction
+                    i += 1
+
                 # no change in normalization
                 else:
                     norm_tok = self.init_normalized(tok, final_normalized[norm_index][1],
                                            final_normalized[norm_index][2])
                     normalized_tokens.append(norm_tok)
 
+            i += 1
+            pre_norm_index += 1
             norm_index += norm_index_counter + 1
 
         return normalized_tokens

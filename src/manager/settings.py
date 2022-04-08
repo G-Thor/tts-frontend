@@ -105,7 +105,7 @@ class ManagerResources:
                 for line in f.read().splitlines():
                     if not line:
                         continue
-                    file_content.update(line.strip())
+                    file_content.add(line.strip())
         return file_content
 
     @staticmethod

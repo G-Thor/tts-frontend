@@ -17,10 +17,22 @@ ENGLISH = 'enska'
 class G2PManager:
 
     def __init__(self):
-        self.syllab_stress = False
+        self.g2p = Transcriber(G2P_METHOD.FAIRSEQ, lang_detect=True, use_dict=True)
+        self.syllab_symbol = ''
+        self.stress = False
+        self.word_separator = ''
 
-    def set_syllab_stress(self, value: bool):
-        self.syllab_stress = value
+    def set_custom_dict(self, pron_dict: dict):
+        self.g2p.set_custom_dict(pron_dict)
+
+    def set_syllab_symbol(self, syllab_symbol: str):
+        self.g2p.syllab_symbol = syllab_symbol
+
+    def set_stress(self, value: bool):
+        self.g2p.add_stress_label = value
+
+    def set_word_separator(self, word_sep: str):
+        self.g2p.word_separator = word_sep
 
     def generate_normalized(self, word: str, token_ind: int) -> NormalizedToken:
         """
@@ -42,7 +54,7 @@ class G2PManager:
         """Transcribes the tokens in token_list and returns a list of
         transcribedTokens, keeps the tagTokens already in the input token_list, except for
         the lang-SSML tag, which is used to transcribe English words using English g2p"""
-        g2p = Transcriber(G2P_METHOD.FAIRSEQ, True)
+
         transcribed_list = []
         is_icelandic = True
         for token in token_list:
@@ -54,7 +66,7 @@ class G2PManager:
                     is_icelandic = False
                     transcribed_list.append(TagToken(SIL_TOKEN, token.token_index))
                     normalized = self.generate_normalized(ENGLISH, token.token_index)
-                    transcribed = g2p.transcribe(ENGLISH, True, self.syllab_stress, True, False)
+                    transcribed = self.g2p.transcribe(ENGLISH)
                     transcr_token = TranscribedToken(normalized)
                     transcr_token.name = transcribed
                     transcribed_list.append(transcr_token)
@@ -65,7 +77,7 @@ class G2PManager:
                 else:
                     transcribed_list.append(token)
             else:
-                transcribed = g2p.transcribe(token.name.lower(), is_icelandic, self.syllab_stress, True, False)
+                transcribed = self.g2p.transcribe(token.name.lower(), icelandic=is_icelandic)
                 transcr_token = TranscribedToken(token)
                 transcr_token.name = transcribed
                 transcribed_list.append(transcr_token)
