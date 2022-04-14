@@ -101,8 +101,7 @@ setup(
 
     include_package_data=True,
     package_dir={'': 'src'},
-    packages=find_packages(where='src', exclude=['src/ice-g2p/src/ice_g2p/fairseq_models/standard/model-256-.3-s-s.pt']),
-   # packages=find_packages(exclude=['src/ice-g2p/src/ice_g2p/fairseq_models/standard/model-256-.3-s-s.pt']),
+    packages=find_packages(where='src'),
     python_requires='>=3.6, <4',
 
     # check requirements!
