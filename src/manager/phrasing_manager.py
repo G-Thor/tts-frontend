@@ -73,7 +73,9 @@ class PhrasingManager:
 
         phrased_token_list = []
         for i, token in enumerate(normalized_tokens):
-            if self.is_punct(token):
+            if isinstance(token, TagToken):
+                phrased_token_list.append(token)
+            elif self.is_punct(token):
                 tag_tok = TagToken(SIL_TAG, token.token_index)
                 phrased_token_list.append(tag_tok)
             else:

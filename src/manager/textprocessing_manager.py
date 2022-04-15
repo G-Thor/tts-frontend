@@ -100,7 +100,7 @@ class Manager:
             clean = self.cleaner.clean_text(text)
         return clean
 
-    def normalize(self, text: str, html=False) -> list:
+    def normalize(self, text: str, html=False, split_sent=False) -> list:
         """
         Normalize 'text', ensuring it does not contain any characters or symbols not valid for g2p.
 
@@ -112,7 +112,7 @@ class Manager:
         """
         clean = self.clean(text, html)
         tokenized = self.tokenizer.detect_sentences(extract_text(clean))
-        clean_tokenized = align_tokens(clean, tokenized)
+        clean_tokenized = align_tokens(clean, tokenized, split_sent)
         normalized = self.normalizer.normalize_token_list(clean_tokenized)
         normalized_with_tag_tokens = self.phrasing.add_pause_tags(normalized)
         return normalized_with_tag_tokens

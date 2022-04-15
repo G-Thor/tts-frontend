@@ -8,8 +8,12 @@ import difflib
 from typing import Union, Tuple
 from .tokens import Token, CleanToken, NormalizedToken, TagToken
 from .tokens_manager import extract_text
+#production
 from regina_normalizer import abbr_functions
 from regina_normalizer import number_functions
+#local testing
+#from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import abbr_functions
+#from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import number_functions
 
 
 class NormalizerManager:
