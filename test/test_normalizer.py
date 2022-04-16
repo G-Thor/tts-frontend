@@ -73,6 +73,15 @@ class TestNormalizer(unittest.TestCase):
                          'Svalt var á Austurvelli í dag en hiti '
                          'í fundarmönnum <sentence>', result_str)
 
+    def test_split_sentences_to_list(self):
+        manager = Manager()
+        input_text = self.get_long_text1()
+        normalized = manager.normalize(input_text, split_sent=True)
+        result = manager.get_sentence_representation(normalized, ignore_tags=False)
+        #for sent in result:
+        #    print(sent)
+        self.assertEqual(3, len(result))
+
 
     def get_long_text1(self):
         return 'Eins var þess krafðist að bankasölunni yrði rift. Að fundinum stóðu UNG ASÍ, Jæja hópurinn, Ungir Píratar, ' \

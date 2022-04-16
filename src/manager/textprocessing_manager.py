@@ -23,7 +23,7 @@ from .settings import (
     VALID_CHARACTERS,
 )
 from .tts_tokenizer import Tokenizer
-from .tokens_manager import extract_text, align_tokens
+from .tokens_manager import extract_text, extract_sentences, align_tokens
 from .cleaner_manager import CleanerManager
 from .normalizer_manager import NormalizerManager
 from .phrasing_manager import PhrasingManager
@@ -153,6 +153,30 @@ class Manager:
 
         transcribed = self.g2p.transcribe(normalized)
         return transcribed
+
+    def get_string_representation(self, token_list: list, ignore_tags=True, word_separator='') -> str:
+        """Extract token names from the outer-most tokens in token_list. That is, if we have a list of
+        normalized tokens, a normalized string is returned, if we have a list of transcribed tokens a transcribed
+        string is returned.
+        :param token_list: the token list to turn into string
+        :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned string
+        :param word_separator: if not empty, the separator will be inserted between each token.
+        :return a string extracted from token_list"""
+
+        return extract_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+
+    def get_sentence_representation(self, token_list: list, ignore_tags=True, word_separator='') -> list:
+        """Extract token names from the outer-most tokens in token_list. That is, if we have a list of
+        normalized tokens, each sentence is a normalized string, if we have a list of transcribed tokens, each
+        sentence is a transcribed version of the tokens.
+
+        :param token_list: the token list to turn into a list of sentence strings
+        :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned strings
+        :param word_separator: if not empty, the separator will be inserted between each token.
+        :return a list of sentences where each sentence represents tokens between sentence separator tag-tokens.
+        If no sentence separator is present in token_list, the list will have len==1."""
+
+        return extract_sentences(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
 
 
 def parse_args():

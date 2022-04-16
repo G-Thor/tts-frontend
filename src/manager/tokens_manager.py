@@ -32,6 +32,36 @@ def extract_text(token_list: list, ignore_tags=True, word_separator='') -> str:
         return ' '.join(token_strings)
 
 
+def extract_sentences(token_list: list, ignore_tags=True, word_separator='') -> list:
+    """Return a list of sentences as represented in token_list. Even if ignore_tags is set to
+    True we check for sentence tags to split the list into sentences."""
+    sentences = []
+    sent_tokens = []
+    for elem in token_list:
+        if isinstance(elem, TagToken) and elem.name == SENTENCE_TAG:
+            if word_separator:
+                sent = f' {word_separator} '.join(sent_tokens)
+            else:
+                sent = ' '.join(sent_tokens)
+            sentences.append(sent)
+            sent_tokens = []
+        elif isinstance(elem, TagToken) and ignore_tags:
+            continue
+        elif not elem.name:
+            continue
+        else:
+            sent_tokens.append(elem.name)
+
+    if sent_tokens:
+        if word_separator:
+            sent = f' {word_separator} '.join(sent_tokens)
+        else:
+            sent = ' '.join(sent_tokens)
+        sentences.append(sent)
+
+    return sentences
+
+
 def extract_tagged_text(token_list: list, ignore_tags=True) -> str:
     token_strings = []
     for elem in token_list:
