@@ -6,7 +6,7 @@ from .settings import SENTENCE_TAG
 def init_tokens(text: str) -> list:
     tokens_list = []
     running_char_ind = 0
-    for tok in text.split(' '):
+    for tok in text.split():
         if not tok:
             continue
         base_token = Token(tok.strip())
@@ -126,12 +126,20 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
     # if the token_list containes tags, we need to step back in the enumeration of the clean_token_list
     set_step_back_counter = False
     while i < len(clean_token_list):
+        if i == 1275:
+            print('check')
         if set_step_back_counter:
             i -= 1
             set_step_back_counter = False
         token = clean_token_list[i]
-        if token.name == token_list[j]:
+        if j >= len(token_list):
+            print('j: ' + str(j) + ', i: ' + str(i) + ' ' + token.name)
+        elif token.name == token_list[j]:
             aligned_list.append(token)
+        elif isinstance(token, TagToken):
+            aligned_list.append(token)
+            # tag tokens are not present in token_list, halt the counting for token_list
+            j -= 1
         elif token_list[j].startswith('<'):
             tag_token = TagToken(token_list[j], j)
             aligned_list.append(tag_token)
@@ -141,7 +149,7 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
             clean_token.set_clean(token_list[j])
             aligned_list.append(clean_token)
             non_splitted_token = token_list[j]
-            while non_splitted_token != token.name and j < len(token_list) - 2:
+            while non_splitted_token != re.sub(pattern, '', token.name) and j < len(token_list) - 2:
                 j += 1
                 if token_list[j].startswith('<'):
                     j -= 1

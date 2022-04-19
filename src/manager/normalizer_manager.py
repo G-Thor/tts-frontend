@@ -7,7 +7,7 @@ the normalizer module, as well as pos-tags delivered by the normalizer module.
 import difflib
 from typing import Union, Tuple
 from .tokens import Token, CleanToken, NormalizedToken, TagToken
-from .tokens_manager import extract_text
+from .tokens_manager import extract_text, extract_sentences
 #production
 from regina_normalizer import abbr_functions
 from regina_normalizer import number_functions
@@ -83,21 +83,25 @@ class NormalizerManager:
         during normalization."""
         # TODO: refactor, extract methods
         normalized_tokens = []
-        text = extract_text(token_list)
-        pre_normalized, final_normalized = self.normalize(text)
+        pre_normalized = []
+        final_normalized = []
+        text_arr = extract_sentences(token_list)
+        for sent in text_arr:
+            pre, final = self.normalize(sent)
+            pre_normalized.extend(pre)
+            final_normalized.extend(final)
+
         pre_norm_index = 0
         norm_index = 0
         i = 0
         # iterate through the original tokens
-        for tok in token_list:
-            if i >= len(token_list):
-                # we already processed the last token during previous iteration
-                break
+        while i < len(token_list):
+            tok = token_list[i]
             norm_index_counter = 0 # indicates how many indices further we move internally in the normalized list during each iteration
             if isinstance(tok, TagToken):
                 normalized_tokens.append(tok)
                 norm_index -= 1 # normalized token list does not contain the tagTokens, so we need to go back with the index
-
+                pre_norm_index -= 1
             else:
                 original_token = tok.name
                 normalized_base_token = final_normalized[norm_index][0]
@@ -184,20 +188,26 @@ class NormalizerManager:
                     span_end = tok.get_original_token().end
                     new_token_name = original_token
                     while new_original.name != new_token_name:
-                        i += 1
-                        continued_token = token_list[i]
-                        new_token_name += ' ' + continued_token.name
-                        span_end = continued_token.get_original_token().end
+                        if isinstance(token_list[i + 1], TagToken):
+                            normalized_tokens.append(tok)
+                            norm_index -= 1
+                            pre_norm_index -= 1
+                            break
+                        else:
+                            i += 1
+                            continued_token = token_list[i]
+                            new_token_name += ' ' + continued_token.name
+                            span_end = continued_token.get_original_token().end
                     new_original.set_span(span_start, span_end)
                     new_clean_tok = CleanToken(new_original)
                     new_clean_tok.set_clean(new_clean)
                     new_clean_tok.set_index(new_original.token_index)
                     norm_tok = self.init_normalized(new_original, final_normalized[norm_index][1], final_normalized[norm_index][2])
                     normalized_tokens.append(norm_tok)
-                    counter_subtraction = len(new_original.name.split()) - 1
-                    pre_norm_index -= counter_subtraction
-                    norm_index -= counter_subtraction
-                    i += 1
+                    #counter_subtraction = len(new_original.name.split()) - 1
+                    #pre_norm_index -= counter_subtraction
+                    #norm_index -= counter_subtraction
+                    #i += 1
 
                 # no change in normalization
                 else:

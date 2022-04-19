@@ -100,7 +100,7 @@ class Manager:
             clean = self.cleaner.clean_text(text)
         return clean
 
-    def normalize(self, text: str, html=False, split_sent=False) -> list:
+    def normalize(self, text: str, html=False, split_sent=True) -> list:
         """
         Normalize 'text', ensuring it does not contain any characters or symbols not valid for g2p.
 
@@ -110,6 +110,7 @@ class Manager:
         ssml-tags or pauses. Includes processing history of each token.
         of each token
         """
+
         clean = self.clean(text, html)
         tokenized = self.tokenizer.detect_sentences(extract_text(clean))
         clean_tokenized = align_tokens(clean, tokenized, split_sent)
@@ -117,20 +118,21 @@ class Manager:
         normalized_with_tag_tokens = self.phrasing.add_pause_tags(normalized)
         return normalized_with_tag_tokens
 
-    def phrase(self, text: str, html=False) -> list:
+    def phrase(self, text: str, html=False, split_sent=True) -> list:
         """
         Normalizes 'text' and adds phrasing marks as pause tags ('<pau>' or '<sil>') to the normalized text.
 
         :param text: raw text or html-text to normalize and phrase
         :param html: if True, 'text' will be interpreted as html-string and parsed accordingly
+        :param split_sent: if True, split 'text' into sentences or meaningful phrase chunk for the TTS
         :return: a list of PhraseTokens representing a normalized version of 'text' with additional TagTokens representing
         ssml-tags or pauses. Includes processing history of each token.
         """
-        normalized = self.normalize(text, html)
+        normalized = self.normalize(text, html=html, split_sent=split_sent)
         phrased = self.phrasing.phrase_token_list(normalized)
         return phrased
 
-    def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False) -> list:
+    def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False, split_sent=True) -> list:
         """
         Transcribes 'text' using the SAMPA phonetic alphabet.
 
@@ -139,13 +141,14 @@ class Manager:
         :param phrasing: if True, perform phrasing after normalizing (and spellcheck if applied)
         :param spellcheck: if True, perform spellcheck after normalizing
         :param syllab_stress: if True, add syllabification and stress labels to the phonetic transcripts
+        :param split_sent: if True, split 'text' into sentences or meaningful phrase chunk for the TTS
         :return: a list of TranscribedTokens representing a transcribed version of 'text' with additional TagTokens representing
         ssml-tags or pauses. Includes processing history of each token.
         """
         if phrasing:
-            normalized = self.phrase(text, html)
+            normalized = self.phrase(text, html=html, split_sent=split_sent)
         else:
-            normalized = self.normalize(text, html)
+            normalized = self.normalize(text, html=html, split_sent=split_sent)
 
         # TODO: add spellchecker manager
         if spellcheck:
