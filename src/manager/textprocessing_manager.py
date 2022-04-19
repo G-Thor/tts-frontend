@@ -23,7 +23,7 @@ from .settings import (
     VALID_CHARACTERS,
 )
 from .tts_tokenizer import Tokenizer
-from .tokens_manager import extract_text, align_tokens
+from .tokens_manager import extract_text, extract_sentences, align_tokens
 from .cleaner_manager import CleanerManager
 from .normalizer_manager import NormalizerManager
 from .phrasing_manager import PhrasingManager
@@ -100,7 +100,7 @@ class Manager:
             clean = self.cleaner.clean_text(text)
         return clean
 
-    def normalize(self, text: str, html=False) -> list:
+    def normalize(self, text: str, html=False, split_sent=True) -> list:
         """
         Normalize 'text', ensuring it does not contain any characters or symbols not valid for g2p.
 
@@ -110,27 +110,29 @@ class Manager:
         ssml-tags or pauses. Includes processing history of each token.
         of each token
         """
+
         clean = self.clean(text, html)
         tokenized = self.tokenizer.detect_sentences(extract_text(clean))
-        clean_tokenized = align_tokens(clean, tokenized)
+        clean_tokenized = align_tokens(clean, tokenized, split_sent)
         normalized = self.normalizer.normalize_token_list(clean_tokenized)
         normalized_with_tag_tokens = self.phrasing.add_pause_tags(normalized)
         return normalized_with_tag_tokens
 
-    def phrase(self, text: str, html=False) -> list:
+    def phrase(self, text: str, html=False, split_sent=True) -> list:
         """
         Normalizes 'text' and adds phrasing marks as pause tags ('<pau>' or '<sil>') to the normalized text.
 
         :param text: raw text or html-text to normalize and phrase
         :param html: if True, 'text' will be interpreted as html-string and parsed accordingly
+        :param split_sent: if True, split 'text' into sentences or meaningful phrase chunk for the TTS
         :return: a list of PhraseTokens representing a normalized version of 'text' with additional TagTokens representing
         ssml-tags or pauses. Includes processing history of each token.
         """
-        normalized = self.normalize(text, html)
+        normalized = self.normalize(text, html=html, split_sent=split_sent)
         phrased = self.phrasing.phrase_token_list(normalized)
         return phrased
 
-    def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False) -> list:
+    def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False, split_sent=True) -> list:
         """
         Transcribes 'text' using the SAMPA phonetic alphabet.
 
@@ -139,13 +141,14 @@ class Manager:
         :param phrasing: if True, perform phrasing after normalizing (and spellcheck if applied)
         :param spellcheck: if True, perform spellcheck after normalizing
         :param syllab_stress: if True, add syllabification and stress labels to the phonetic transcripts
+        :param split_sent: if True, split 'text' into sentences or meaningful phrase chunk for the TTS
         :return: a list of TranscribedTokens representing a transcribed version of 'text' with additional TagTokens representing
         ssml-tags or pauses. Includes processing history of each token.
         """
         if phrasing:
-            normalized = self.phrase(text, html)
+            normalized = self.phrase(text, html=html, split_sent=split_sent)
         else:
-            normalized = self.normalize(text, html)
+            normalized = self.normalize(text, html=html, split_sent=split_sent)
 
         # TODO: add spellchecker manager
         if spellcheck:
@@ -153,6 +156,30 @@ class Manager:
 
         transcribed = self.g2p.transcribe(normalized)
         return transcribed
+
+    def get_string_representation(self, token_list: list, ignore_tags=True, word_separator='') -> str:
+        """Extract token names from the outer-most tokens in token_list. That is, if we have a list of
+        normalized tokens, a normalized string is returned, if we have a list of transcribed tokens a transcribed
+        string is returned.
+        :param token_list: the token list to turn into string
+        :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned string
+        :param word_separator: if not empty, the separator will be inserted between each token.
+        :return a string extracted from token_list"""
+
+        return extract_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+
+    def get_sentence_representation(self, token_list: list, ignore_tags=True, word_separator='') -> list:
+        """Extract token names from the outer-most tokens in token_list. That is, if we have a list of
+        normalized tokens, each sentence is a normalized string, if we have a list of transcribed tokens, each
+        sentence is a transcribed version of the tokens.
+
+        :param token_list: the token list to turn into a list of sentence strings
+        :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned strings
+        :param word_separator: if not empty, the separator will be inserted between each token.
+        :return a list of sentences where each sentence represents tokens between sentence separator tag-tokens.
+        If no sentence separator is present in token_list, the list will have len==1."""
+
+        return extract_sentences(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
 
 
 def parse_args():

@@ -79,6 +79,8 @@ HTML_CLOSING_TAG_REPL = {
             # and plain text until books get better (html translators).
 }
 
+SENTENCE_TAG = '<sentence>'
+
 
 class ManagerResources:
     """ Holds lists and maps with lists and dictionaries for use in any submodule of the frontend manager.

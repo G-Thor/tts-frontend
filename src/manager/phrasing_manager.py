@@ -14,7 +14,7 @@ SIL_TAG = '<sil>'
 class PhrasingManager:
 
     def is_punct(self, tok: NormalizedToken):
-        return tok.pos == '.' or tok.pos == ',' or tok.pos == 'pg' or tok.name == '/'
+        return tok.pos == '.' or tok.pos == ',' or tok.pos == 'pg' or tok.pos == 'pa' or tok.name == '/'
 
     def phrase_text(self, tagged_text: str):
         MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -49,7 +49,10 @@ class PhrasingManager:
         print(str(normalized_tokens))
         print(str(phrased_list))
         for i, token in enumerate(normalized_tokens):
-            if token.name == phrased_list[phrase_index]:
+            if phrase_index >= len(phrased_list):
+                # phrased is finished, last token from normalized list left
+                phrased_token_list.append(token)
+            elif token.name == phrased_list[phrase_index]:
                 phrased_token_list.append(token)
             elif isinstance(token, TagToken):
                 phrased_token_list.append(token)
@@ -73,7 +76,9 @@ class PhrasingManager:
 
         phrased_token_list = []
         for i, token in enumerate(normalized_tokens):
-            if self.is_punct(token):
+            if isinstance(token, TagToken):
+                phrased_token_list.append(token)
+            elif self.is_punct(token):
                 tag_tok = TagToken(SIL_TAG, token.token_index)
                 phrased_token_list.append(tag_tok)
             else:
