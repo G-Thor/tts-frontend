@@ -62,6 +62,14 @@ class TestNormalizer(unittest.TestCase):
         result_str = tokens.extract_text(normalized)
         self.assertEqual('Sími fimm sjö núll <sil> tveir þrír sex sjö á sjúkrahúsinu', result_str)
 
+    def test_normalize_acronyms(self):
+        manager = Manager()
+        input_text = 'Eins og FTSE vísitalan segir AIDS'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_text(normalized)
+        print(result_str)
+        self.assertEqual('Eins og F T S E vísitalan segir A I D S', result_str)
+
     def test_split_sentences(self):
         manager = Manager()
         input_text = self.get_long_text1()
@@ -102,6 +110,17 @@ class TestNormalizer(unittest.TestCase):
             print(sent)
         #self.assertEqual(10, len(result))
 
+    def test_normalize_html(self):
+        #TODO: fix 'kr. 156.459,-' (see Akranes_10.txt')
+        manager = Manager()
+        input_text = self.get_html_string()
+        normalized = manager.normalize(input_text, html=True, split_sent=True)
+        result = manager.get_sentence_representation(normalized, ignore_tags=False)
+        print("no. of sentences: " + str(len(result)))
+        for sent in result:
+            print(sent)
+        #self.assertEqual(10, len(result))
+
 
     def get_very_long_text(self):
         with open('../Akranes_10.txt') as f:
@@ -127,4 +146,16 @@ class TestNormalizer(unittest.TestCase):
                'fjármálaráðherra, Sigmar Guðmundsson, þingmaður Viðreisnar, sem sagði ríkisstjórnina reyna að nota ' \
                'Bankasýsluna sem skálkaskjól til að forðast að bera sjálf ábyrgð, og Kristrún Frostadóttir, sem sagði ' \
                'málinu alls ekki lokið og að það væri á ábyrgð fjármálaráðherra.'
+
+    def get_html_string(self):
+        return '<p id="hix00274"><span id="qitl_0591" class="sentence">Í kjölfarið sýndi hann fram á að það stuðli að ' \
+               'heilbrigði ef einstaklingar geti fundið samhengi í tengslum við lífsatburði eða öðlast skilning á aðstæðum sínum. ' \
+               '</span><span id="qitl_0592" class="sentence">Hann taldi uppsprettu heilbrigðis ' \
+               '(e. </span><em><span id="qitl_0593" class="sentence">salutogenesis)</span></em><span id="qitl_0594" class="sentence"> ' \
+               'vera að finna í mismunandi hæfni einstaklinga til að stjórna viðbrögðum sínum við álagi. </span>' \
+               '<span id="qitl_0595" class="sentence">Antonovsky sýndi fram á að ef einstaklingar sem upplifðu álag sæju ' \
+               'tilgang með reynslu sinni, þá þróaðist með þeim tilfinning fyrir samhengi í lífinu ' \
+               '(e. </span><em><span id="qitl_0596" class="sentence">sense of coherence).</span></em>' \
+               '<span id="qitl_0597" class="sentence"> Sigrún Gunnarsdóttir hefur íslenskað skilgreiningu hugtaksins ' \
+               'um tilfinningu fyrir samhengi í lífinu á eftirfarandi hátt: </span></p>'
 
