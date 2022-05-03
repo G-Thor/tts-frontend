@@ -72,10 +72,13 @@ class NormalizedToken:
     possibly be overridden by the pos of the spell corrected token."""
 
     def __init__(self, original: Union[Token, CleanToken]):
-        """A normalized token can have an optional clean token."""
         if isinstance(original, Token):
+            # if we are initializing a normalized token directly from an original token,
+            # we need to init a clean token with the same information as well to prevent
+            # things from breaking at later stages, i.e. a normalized token is always
+            # assumed to contain a clean token
             self.original_token = original
-            self.clean_token = None
+            self.clean_token = CleanToken(original)
         else:
             self.original_token = original.get_original_token() # do we need this?
             self.clean_token = original

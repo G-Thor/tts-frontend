@@ -68,7 +68,7 @@ class TestNormalizer(unittest.TestCase):
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_text(normalized)
         print(result_str)
-        self.assertEqual('Eins og F T S E vísitalan segir', result_str)
+        self.assertEqual('Eins og F T S E vísitalan segir A I D S', result_str)
 
     def test_split_sentences(self):
         manager = Manager()
