@@ -56,6 +56,14 @@ class TestNormalizer(unittest.TestCase):
         for sent in result_arr:
             print(sent)
 
+    def test_longer_text_3(self):
+        manager = Manager()
+        test_string = self.get_parsed_html()
+        transcribed = manager.transcribe(test_string, phrasing=True)
+        result_arr = manager.get_sentence_representation(transcribed, ignore_tags=False)
+        for sent in result_arr:
+            print(sent)
+
     def get_custom_dict(self):
         custom = {'texti': 't_h E x s t I', 'engir': '9 N k v I r'}
         return custom
@@ -88,3 +96,12 @@ class TestNormalizer(unittest.TestCase):
                'fjármálaráðherra, Sigmar Guðmundsson, þingmaður Viðreisnar, sem sagði ríkisstjórnina reyna að nota ' \
                'Bankasýsluna sem skálkaskjól til að forðast að bera sjálf ábyrgð, og Kristrún Frostadóttir, sem sagði ' \
                'málinu alls ekki lokið og að það væri á ábyrgð fjármálaráðherra.'
+
+    def get_parsed_html(self):
+        return 'Í kjölfarið sýndi hann fram á að það stuðli að heilbrigði ef einstaklingar geti fundið samhengi í ' \
+               'tengslum við lífsatburði eða öðlast skilning á aðstæðum sínum. Hann taldi uppsprettu ' \
+               'heilbrigðis <lang xml:lang="en-GB"> salutogenesis </lang> vera að finna í mismunandi hæfni einstaklinga ' \
+               'til að stjórna viðbrögðum sínum við álagi. Antonovsky sýndi fram á að ef einstaklingar sem upplifðu ' \
+               'álag sæju tilgang með reynslu sinni, þá þróaðist með þeim tilfinning fyrir samhengi í ' \
+               'lífinu <lang xml:lang="en-GB"> sense of coherence </lang> Sigrún Gunnarsdóttir hefur íslenskað ' \
+               'skilgreiningu hugtaksins um tilfinningu fyrir samhengi í lífinu á eftirfarandi hátt: '
