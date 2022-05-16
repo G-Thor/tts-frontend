@@ -1,10 +1,5 @@
-†
-!?
 $
 %
-&
-'
-*
 -b.
 -br.
 -f.
@@ -65,7 +60,6 @@ $
 =
 =>
 >
-??
 @
 A
 A-
@@ -270,7 +264,6 @@ Dóm.
 Dómsmrn.
 Dýrf.
 E
-E(X)
 E. Ben. Lj. II
 E. Sk.
 E. Ól.
@@ -924,8 +917,6 @@ Kól
 Kól.
 Kóp.
 L
-L()
-L-
 LA
 LB
 LBI
@@ -1173,12 +1164,10 @@ Norðurl.
 Norðurl. e.
 Norðurl. v.
 Norðvest.
-Norð­vest.
 Np
 Nr
 Nv
 Ny.
-N·m
 Ný.
 Nýjat.
 O. G.
@@ -1203,7 +1192,6 @@ Os
 Ottóss
 Ottóss.
 P
-P(A)
 P. F. Í.
 PA
 PAL
@@ -1550,7 +1538,6 @@ Sunnf.
 Suðurk.
 Suðurl.
 Suðvest.
-Suð­vest.
 Sv
 Svarf.
 Svarfd.
@@ -1596,10 +1583,7 @@ Sír
 Sól.
 Súgf.
 Sþ.
-ɔ
 T
-T(T)
-T-
 T. t. s.
 T. Í.
 T.t.s.
@@ -1682,8 +1666,6 @@ Uppl
 UÍA
 UÍÓ
 V
-V(X)
-V-
 V-Barð.
 V-Germani
 V-Hún.
@@ -1785,11 +1767,6 @@ Yt.
 Z
 ZAR
 Zef.
-[]
-\Odot
-\Oplus
-\Til
-\þe
 a
 a.
 a. k. m.
@@ -1923,7 +1900,7 @@ babýl.
 bal.
 baltn.
 bandar.
-bandar.!
+bandar.
 bankabr.
 barnal.
 bask.
@@ -2825,7 +2802,6 @@ myndhv.
 myndl.
 m²
 m³
-m·s-1
 mád.
 máld.
 málfr.
@@ -3309,7 +3285,6 @@ tbl
 tbl.
 teg.
 teikn.
-teikn.!
 tf.
 tfn.
 till.
@@ -3471,7 +3446,6 @@ yfirl.
 ym.
 £
 ¥
-§
 °
 °C
 °F
@@ -3635,7 +3609,6 @@ ym.
 Þórðar s. hreðu
 Þýskal
 Þýskal.
-ß
 á.á.
 áb.
 áb. forn.

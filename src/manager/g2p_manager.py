@@ -22,6 +22,9 @@ class G2PManager:
         self.stress = False
         self.word_separator = ''
 
+    def set_core_pron_dict(self, pron_dict: dict):
+        self.g2p.override_core_dict(pron_dict)
+
     def set_custom_dict(self, pron_dict: dict):
         self.g2p.set_custom_dict(pron_dict)
 
@@ -77,7 +80,9 @@ class G2PManager:
                 else:
                     transcribed_list.append(token)
             else:
-                transcribed = self.g2p.transcribe(token.name.lower(), icelandic=is_icelandic)
+                transcribed = ''
+                if token.name:
+                    transcribed = self.g2p.transcribe(token.name.lower().strip(), icelandic=is_icelandic)
                 transcr_token = TranscribedToken(token)
                 transcr_token.name = transcribed
                 transcribed_list.append(transcr_token)

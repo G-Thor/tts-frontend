@@ -29,6 +29,7 @@ class CleanerManager:
         self.cleaner = TextCleaner(replacement_dict=repl_dict, post_dict=post_lookup_dict, preserve_strings=lexicon,
                                    punct_set=PUNCTUATION)
         self.html_cleaner = HtmlCleaner()
+        self.next_token_index = 0
 
     def clean_text(self, text: str) -> list:
         """The text attribute should be raw text, i.e. not html. Returns a list of CleanTokens."""
@@ -57,6 +58,17 @@ class CleanerManager:
 
         return self.clean_html_text(html_string)
 
+    def orig_token_deleted(self, orig_list, clean_list, current_index) -> bool:
+        """Check if symbols from orig_list have been deleted during cleaning. Mostly we will have one deleted
+        symbol, but there might be a sequence of them, so search for the next common token while tokens from
+        orig_list ar non alpha-numeric, i.e. might have been deleted"""
+        current_clean = clean_list[0]
+        for i in range(len(orig_list)):
+            if orig_list[i].name == current_clean.name:
+                self.next_token_index = current_index + i
+                return True
+        return False
+
     def clean_html_text(self, html_string: str) -> list:
         """The html parser is designed around the EPUB-format and will parse the html_string accordingly.
         Returns a list of CleanTokens, with TagTokens if any SSML-tags were created by the cleaner."""
@@ -64,10 +76,12 @@ class CleanerManager:
         orig_tokens, clean_tokens = self.create_token_lists(html_string)
         clean_html_tokens = []
         clean_counter = 0
+        orig_counter = 0
+
         # Create a list of CleanTokens from orig_tokens and clean_tokens.
         # Take care to insert SSML-TagTokens from clean_tokens in the correct way and adjust indices accordingly
-        for i in range(len(orig_tokens)):
-            orig_token = orig_tokens[i]
+        while orig_counter < len(orig_tokens) and clean_counter < len(clean_tokens):
+            orig_token = orig_tokens[orig_counter]
             clean_html_token = clean_tokens[clean_counter]
             if orig_token.name == clean_html_token.name:
                 orig_token.set_index(len(clean_html_tokens))
@@ -91,11 +105,25 @@ class CleanerManager:
                     clean_token.set_clean(clean_tokens[clean_counter + 1].name)
                     clean_html_tokens.append(clean_token)
                     clean_counter += 1
+                # did the cleaner delete the orig_token?
+                elif self.orig_token_deleted(orig_tokens[orig_counter:], clean_tokens[clean_counter:], orig_counter):
+                    ind_range = self.next_token_index - orig_counter
+                    for i in range(ind_range):
+                        deleted_token = CleanToken(orig_tokens[orig_counter + i])
+                        deleted_token.set_clean('')
+                        clean_html_tokens.append(deleted_token)
+                    clean_token = CleanToken(orig_tokens[self.next_token_index])
+                    clean_token.set_clean(clean_html_token.name)
+                    clean_html_tokens.append(clean_token)
+                    orig_counter += ind_range
+                # if we reach this, the clean token should be a clean version of orig token,
+                # e.g. 'horizontal' vs. 'horisontal'
                 else:
                     orig_token.set_index(len(clean_html_tokens))
                     clean_token = CleanToken(orig_token)
                     clean_token.set_clean(clean_html_token.name)
                     clean_html_tokens.append(clean_token)
             clean_counter += 1
+            orig_counter += 1
 
         return clean_html_tokens

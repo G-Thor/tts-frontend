@@ -16,6 +16,11 @@ class TestCleaner(unittest.TestCase):
         result = manager.clean(input_text)
         result_str = tokens.extract_text(result)
         self.assertEqual('Leikurinn fór ca. 5-2', result_str)
+        input_text = '§ Því fleiri, því betri'
+        result = manager.clean(input_text)
+        result_str = tokens.extract_text(result)
+        self.assertEqual('Því fleiri, því betri', result_str)
+
 
     def test_html_clean(self):
         manager = Manager()

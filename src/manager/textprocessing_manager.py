@@ -40,6 +40,7 @@ class Manager:
         self.normalizer = NormalizerManager()
         self.phrasing = PhrasingManager()
         self.g2p = G2PManager()
+        self.g2p.set_core_pron_dict(self.get_prondict())
         self.g2p.set_custom_dict(custom_pron_dict)
 
     def get_abbreviations(self):

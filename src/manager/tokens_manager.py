@@ -121,48 +121,51 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
 
     token_list = tokenized_string.split()
     aligned_list = []
-    i = 0
-    j = 0
+    clean_counter = 0
+    tokenized_counter = 0
     # if the token_list containes tags, we need to step back in the enumeration of the clean_token_list
     set_step_back_counter = False
-    while i < len(clean_token_list):
-        if i == 1275:
-            print('check')
+    while clean_counter < len(clean_token_list):
         if set_step_back_counter:
-            i -= 1
+            clean_counter -= 1
             set_step_back_counter = False
-        token = clean_token_list[i]
-        if j >= len(token_list):
-            print('j: ' + str(j) + ', i: ' + str(i) + ' ' + token.name)
-        elif token.name == token_list[j]:
+        token = clean_token_list[clean_counter]
+        if tokenized_counter >= len(token_list):
+            print('tokenized: ' + str(tokenized_counter) + ', cleaned: ' + str(clean_counter) + ' ' + token.name)
+        elif token.name == token_list[tokenized_counter]:
             aligned_list.append(token)
         elif isinstance(token, TagToken):
             aligned_list.append(token)
             # tag tokens are not present in token_list, halt the counting for token_list
-            j -= 1
-        elif token_list[j].startswith('<'):
-            tag_token = TagToken(token_list[j], j)
+            tokenized_counter -= 1
+        elif token_list[tokenized_counter].startswith('<'):
+            tag_token = TagToken(token_list[tokenized_counter], tokenized_counter)
             aligned_list.append(tag_token)
             set_step_back_counter = True
+        elif not token.name:
+            # clean token is empty, meaning original token was deleted during cleaning
+            # repeat comparison with tokenized list in the next round
+            aligned_list.append(token)
+            tokenized_counter -= 1
         else:
             clean_token = CleanToken(token.get_original_token())
-            clean_token.set_clean(token_list[j])
+            clean_token.set_clean(token_list[tokenized_counter])
             aligned_list.append(clean_token)
-            non_splitted_token = token_list[j]
-            while non_splitted_token != re.sub(pattern, '', token.name) and j < len(token_list) - 2:
-                j += 1
-                if token_list[j].startswith('<'):
-                    j -= 1
+            non_splitted_token = token_list[tokenized_counter]
+            while non_splitted_token != re.sub(pattern, '', token.name) and tokenized_counter < len(token_list) - 2:
+                tokenized_counter += 1
+                if token_list[tokenized_counter].startswith('<'):
+                    tokenized_counter -= 1
                     break
                 clean_token = CleanToken(token.get_original_token())
-                clean_token.set_clean(token_list[j])
+                clean_token.set_clean(token_list[tokenized_counter])
                 aligned_list.append(clean_token)
-                non_splitted_token += token_list[j]
-        i += 1
-        j += 1
+                non_splitted_token += token_list[tokenized_counter]
+        clean_counter += 1
+        tokenized_counter += 1
     # last closing tag in token_list?
-    if j < len(token_list) and token_list[j].startswith('<'):
-        tag_token = TagToken(token_list[j], j)
+    if tokenized_counter < len(token_list) and token_list[tokenized_counter].startswith('<'):
+        tag_token = TagToken(token_list[tokenized_counter], tokenized_counter)
         aligned_list.append(tag_token)
 
     return aligned_list
