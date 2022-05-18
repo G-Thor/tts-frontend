@@ -49,8 +49,6 @@ class PhrasingManager:
         print(str(normalized_tokens))
         print(str(phrased_list))
         for i, token in enumerate(normalized_tokens):
-            if i == 171:
-                print("check")
             if phrase_index >= len(phrased_list):
                 # phrased is finished, last token from normalized list left
                 phrased_token_list.append(token)
