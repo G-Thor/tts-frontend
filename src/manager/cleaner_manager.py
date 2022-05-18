@@ -33,20 +33,12 @@ class CleanerManager:
 
     def clean_text(self, text: str) -> list:
         """The text attribute should be raw text, i.e. not html. Returns a list of CleanTokens."""
-        #token_list = init_tokens(text)
-        #clean_tokens = []
-        #for tok in token_list:
-        #    cleaned = self.cleaner.clean(tok.name)
-        #    clean_token = CleanToken(tok)
-        #    clean_token.set_clean(cleaned)
-        #    clean_tokens.append(clean_token)
         orig_tokens, clean_tokens = self.create_token_lists(text)
         clean_tokens_list = self.align_token_lists(orig_tokens, clean_tokens)
         return clean_tokens_list
 
     def create_token_lists_from_html(self, html_string: str) -> Tuple[list, list]:
         """Extract raw tokens list and clean tokens list from html_string."""
-
         raw_text = self.html_cleaner.clean_html(html_string)
         cleaned = self.cleaner.clean(raw_text)
         token_list = init_tokens(raw_text)
@@ -55,7 +47,6 @@ class CleanerManager:
 
     def create_token_lists(self, text: str) -> Tuple[list, list]:
         """Extract raw tokens list and clean tokens list from text."""
-
         cleaned = self.cleaner.clean(text)
         token_list = init_tokens(text)
         clean_tokens = init_tokens(cleaned)
@@ -79,11 +70,15 @@ class CleanerManager:
         return False
 
     def is_ssml(self, token: str) -> bool:
-        if token == SSML_LANG_START:
+        if self.is_ssml_start(token):
             return True
-        if token.startswith(SSML_LANG_END):
-            return True
-        return False
+        return self.is_ssml_end(token)
+
+    def is_ssml_start(self, token: str) -> bool:
+        return token == SSML_LANG_START
+
+    def is_ssml_end(self, token: str) -> bool:
+        return token.startswith(SSML_LANG_END)
 
     def clean_html_text(self, html_string: str) -> list:
         """The html parser is designed around the EPUB-format and will parse the html_string accordingly.
@@ -109,7 +104,7 @@ class CleanerManager:
                 clean_token.set_clean(clean_html_token.name)
                 clean_tokens_list.append(clean_token)
             else:
-                if clean_html_token.name == SSML_LANG_START:
+                if self.is_ssml_start(clean_html_token.name):
                     next_clean = clean_tokens[clean_counter + 1]
                     tag_str = SSML_LANG_START + ' ' + next_clean.name
                     tag_tok = TagToken(tag_str, len(clean_tokens_list))
@@ -118,7 +113,7 @@ class CleanerManager:
                     clean_counter += 1
                     if orig_token.name == clean_html_token.name:
                         orig_counter += 1
-                elif clean_html_token.name.startswith(SSML_LANG_END):
+                elif self.is_ssml_end(clean_html_token.name):
                     tag_tok = TagToken(SSML_LANG_END, len(clean_tokens_list))
                     tag_tok.ssml_end = True
                     clean_tokens_list.append(tag_tok)
