@@ -16,6 +16,10 @@ class TestCleaner(unittest.TestCase):
         result = manager.clean(input_text)
         result_str = tokens.extract_text(result)
         self.assertEqual('Leikurinn fór ca. 5-2', result_str)
+        input_text = '§ Því fleiri, því betri'
+        result = manager.clean(input_text)
+        result_str = tokens.extract_text(result)
+        self.assertEqual('Því fleiri, því betri', result_str)
 
     def test_html_clean(self):
         manager = Manager()
@@ -32,8 +36,8 @@ class TestCleaner(unittest.TestCase):
         manager = Manager()
         input_text = self.get_html_string2()
         result = manager.clean(input_text, html=True)
-        for elem in result:
-            print(elem)
+        self.assertEqual(len(result), 401)
+        self.assertEqual(result[400].name, 'samhengi.')
 
     def get_html_string(self):
         return '<p id="hix00274"><span id="qitl_0591" class="sentence">Í kjölfarið sýndi hann fram á að það stuðli að ' \

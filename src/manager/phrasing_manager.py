@@ -14,7 +14,7 @@ SIL_TAG = '<sil>'
 class PhrasingManager:
 
     def is_punct(self, tok: NormalizedToken):
-        return tok.pos == '.' or tok.pos == ',' or tok.pos == 'pg' or tok.pos == 'pa' or tok.name == '/'
+        return tok.pos == '.' or tok.pos == ',' or tok.pos == 'pg' or tok.pos == 'pa' or tok.pos == 'pl' or tok.name == '/'
 
     def phrase_text(self, tagged_text: str):
         MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -52,7 +52,8 @@ class PhrasingManager:
             if phrase_index >= len(phrased_list):
                 # phrased is finished, last token from normalized list left
                 phrased_token_list.append(token)
-            elif token.name == phrased_list[phrase_index]:
+            elif token.name == phrased_list[phrase_index] or token.name.replace('-', '<pau>') == phrased_list[phrase_index]:
+                # TODO: <pau> tag should not be embedded in a token! check phrasing module
                 phrased_token_list.append(token)
             elif isinstance(token, TagToken):
                 phrased_token_list.append(token)
@@ -66,6 +67,13 @@ class PhrasingManager:
                 if not self.is_punct(token):
                     phrased_token_list.append(token)
                     phrase_index += 1
+            elif not token.name:
+                # if token.name is empty, it contains a token in the originalToken that has been
+                # deleted during cleaning, need to keep the token anyway
+                phrased_token_list.append(token)
+                phrase_index -= 1
+            else:
+                print(str(token) + ' what is the fallback?')
 
             phrase_index += 1
         return phrased_token_list

@@ -223,6 +223,9 @@ class Tokenizer:
         # don't do anything with tokens that look like links and e-mail addresses
         if re.match('(www)|(http)|@', token):
             return False
+        # don't do anything with closing tags tokens
+        if re.match('</.+>', token):
+            return False
         # don't process abbreviations
         if self.is_abbreviation(token):
             return False

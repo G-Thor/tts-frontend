@@ -105,8 +105,13 @@ class NormalizerManager:
             else:
                 original_token = tok.name
                 normalized_base_token = final_normalized[norm_index][0]
+                if not original_token:
+                    norm_tok = self.init_normalized(tok, '', '')
+                    normalized_tokens.append(norm_tok)
+                    norm_index -= 1
+                    pre_norm_index -= 1
                 # (2021,2021) vs. (2021, tvö þúsund tuttugu og eitt)
-                if normalized_base_token == original_token and len(final_normalized[norm_index][1].split()) > 1:
+                elif normalized_base_token == original_token and len(final_normalized[norm_index][1].split()) > 1:
                     for wrd in final_normalized[norm_index][1].split():
                         punct = ''
                         if wrd.endswith(',') or wrd.endswith('.'):
