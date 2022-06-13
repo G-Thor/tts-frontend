@@ -62,6 +62,20 @@ def extract_sentences(token_list: list, ignore_tags=True, word_separator='') -> 
     return sentences
 
 
+def extract_tokens_and_tag(token: NormalizedToken) -> list:
+    # if token.name contains space(s), extract each token with the pos
+    # e.g. name: 'fimm fimm sjö' pos: 'ta'
+    # return: 'fimm ta fimm ta sjö ta'
+
+    results = []
+    token_arr = token.name.split()
+    for tok in token_arr:
+        results.append(tok)
+        results.append(token.pos)
+
+    return results
+
+
 def extract_tagged_text(token_list: list, ignore_tags=True) -> str:
     token_strings = []
     for elem in token_list:
@@ -69,9 +83,7 @@ def extract_tagged_text(token_list: list, ignore_tags=True) -> str:
             continue
         if not isinstance(elem, NormalizedToken):
             ValueError('We can only extract tagged text from NormalizedTokens, not from ' + str(type(elem)))
-        token_strings.append(elem.name)
-        token_strings.append(' ')
-        token_strings.append(elem.pos)
+        token_strings.extend(extract_tokens_and_tag(elem))
         if elem.pos == '.':
             token_strings.append('\n')
         else:

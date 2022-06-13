@@ -26,6 +26,7 @@ from .tts_tokenizer import Tokenizer
 from .tokens_manager import extract_text, extract_sentences, align_tokens
 from .cleaner_manager import CleanerManager
 from .normalizer_manager import NormalizerManager
+from .spellchecker_manager import SpellCheckerManager
 from .phrasing_manager import PhrasingManager
 from .g2p_manager import G2PManager
 
@@ -38,6 +39,7 @@ class Manager:
         cleaner_lexicon = self.get_default_cleaner_lexicon()
         self.cleaner = CleanerManager(self.get_replacement_dict(), self.get_post_lookup_dict(), cleaner_lexicon)
         self.normalizer = NormalizerManager()
+        self.spellchecker = SpellCheckerManager()
         self.phrasing = PhrasingManager()
         self.g2p = G2PManager()
         self.g2p.set_core_pron_dict(self.get_prondict())
@@ -151,9 +153,8 @@ class Manager:
         else:
             normalized = self.normalize(text, html=html, split_sent=split_sent)
 
-        # TODO: add spellchecker manager
         if spellcheck:
-            pass
+            normalized = self.spellchecker.spellcheck_token_list(normalized)
 
         transcribed = self.g2p.transcribe(normalized)
         return transcribed
@@ -192,7 +193,7 @@ def parse_args():
 
 def main():
     input_text1 = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
-    input_text = 'Sími 570 4509'
+    input_text = 'Þetta er allt vittlaust'
 
     #args = parse_args()
     #if not args.input_text:

@@ -46,8 +46,7 @@ class PhrasingManager:
             phrased_list.extend(sent.split(' '))
         phrased_token_list = []
         phrase_index = 0
-        print(str(normalized_tokens))
-        print(str(phrased_list))
+
         for i, token in enumerate(normalized_tokens):
             if phrase_index >= len(phrased_list):
                 # phrased is finished, last token from normalized list left
@@ -73,7 +72,27 @@ class PhrasingManager:
                 phrased_token_list.append(token)
                 phrase_index -= 1
             else:
-                print(str(token) + ' what is the fallback?')
+                # check for 1 to n relation phrased vs. normalized
+                # e.g. 'fimm' vs. 'fimm fimm sjö <sil> einn tveir þrír fjórir'
+                normalized = token.name
+                norm_arr = normalized.split('<sil>')
+                if len(norm_arr) > 1:
+                    # we have a <sil> tag somewhere in the normalized name
+                    for str in norm_arr:
+                        norm_token = NormalizedToken(token.clean_token)
+                        norm_token.set_normalized(str)
+                        norm_token.set_index(token.token_index)
+                        norm_token.set_pos(token.pos)
+                        tag_tok = TagToken('<sil>', token.token_index)
+                        phrased_token_list.append(norm_token)
+                        phrased_token_list.append(tag_tok)
+                    # remove the last '<sil>' token
+                    phrased_token_list = phrased_token_list[:-1]
+                else:
+                    phrased_token_list.append(token)
+
+                phrase_index += len(normalized.split())
+                i += len(normalized.split())
 
             phrase_index += 1
         return phrased_token_list
