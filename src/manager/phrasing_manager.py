@@ -4,17 +4,24 @@ a list of NormalizedTokens, the same as the input from the normalizer_manager. T
 where it assumes a good place for a speech pause.
 """
 import os
-from .tokens import NormalizedToken, TagToken
+from .tokens import Token, TagToken
 from .tokens_manager import extract_tagged_text
 from phrasing.phrasing import Phrasing
 
 # used to replace punctuation in normalized text if we don't perform real phrasing analysis
 SIL_TAG = '<sil>'
 
+
 class PhrasingManager:
 
-    def is_punct(self, tok: NormalizedToken):
-        return tok.pos == '.' or tok.pos == ',' or tok.pos == 'pg' or tok.pos == 'pa' or tok.pos == 'pl' or tok.name == '/'
+    @staticmethod
+    def is_punct(tok: Token):
+        if isinstance(tok, TagToken):
+            return False
+        for normalized in tok.normalized:
+            if normalized.pos in ['.', ',', 'pg', 'pa', 'pl'] or tok.name == '/':
+                return True
+        return False
 
     def phrase_text(self, tagged_text: str):
         MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -103,9 +110,9 @@ class PhrasingManager:
 
         phrased_token_list = []
         for i, token in enumerate(normalized_tokens):
-            if isinstance(token, TagToken):
-                phrased_token_list.append(token)
-            elif self.is_punct(token):
+            if self.is_punct(token):
+                if len(token.normalized) > 1:
+                    phrased_token_list.append(token)
                 tag_tok = TagToken(SIL_TAG, token.token_index)
                 phrased_token_list.append(tag_tok)
             else:

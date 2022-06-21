@@ -10,36 +10,36 @@ class TestNormalizer(unittest.TestCase):
         manager = Manager()
         input_text = '10-18 m/s'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('tíu til átján metrar á sekúndu', result_str)
-        self.assertEqual('m/s', normalized[5].original_token.name)
+        self.assertEqual('m/s', normalized[1].name)
         input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
         normalized = manager.normalize(input_text, split_sent=False)
-        result_str = tokens.extract_text(normalized, ignore_tags=False)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
         self.assertEqual('Snýst í suðaustan tíu til átján metrar á sekúndu og hlýnar með rigningu <sil> en norðaustanátt og '
-                         'snjókoma norðvestan til fyrri part dags', result_str)
-        self.assertEqual('NV-til', normalized[19].original_token.name)
+                         'snjókoma norðvestan til fyrri part dags <sentence>', result_str)
+        self.assertEqual('NV-til', normalized[14].name)
 
     def test_normalize_denom(self):
         manager = Manager()
         input_text = '5/6'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('fimm sjöttu', result_str)
         input_text = '50 EUR/t og 3,5 millj./ha .'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('fimmtíu evrur á tonnið og þrjár komma fimm milljónir á hektarann', result_str)
 
     def test_normalize_abbr(self):
         manager = Manager()
         input_text = 'þetta voru ca. 5 mín.'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('þetta voru sirka fimm mínútur', result_str)
         input_text = '500 kwst.'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         #normalizer does not normalize kwst. correctly, has to do with upper and lower case
         #TODO: fix in normalizer
         #self.assertEqual('fimm hundruð kílóvattstundir', result_str)
@@ -52,21 +52,21 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual('the wall', result_str)
         input_text = 'certainly cawity'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('certainly kavity', result_str)
 
     def test_normalize_numbers(self):
         manager = Manager()
         input_text = 'Sími 570 2367 á sjúkrahúsinu'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('Sími fimm sjö núll <sil> tveir þrír sex sjö á sjúkrahúsinu', result_str)
 
     def test_normalize_acronyms(self):
         manager = Manager()
         input_text = 'Eins og FTSE vísitalan segir AIDS'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         print(result_str)
         self.assertEqual('Eins og F T S E vísitalan segir A I D S', result_str)
 
@@ -74,7 +74,7 @@ class TestNormalizer(unittest.TestCase):
         manager = Manager()
         input_text = self.get_long_text1()
         normalized = manager.normalize(input_text, split_sent=True)
-        result_str = tokens.extract_text(normalized, ignore_tags=False)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
         self.assertEqual('Eins var þess krafðist að bankasölunni yrði rift <sentence> Að fundinum stóðu U N G A S Í <sil> '
                          'Jæja hópurinn <sil> '
                          'Ungir Píratar <sil> Ungir sósíalistar og Ungir jafnaðarmenn <sentence> '

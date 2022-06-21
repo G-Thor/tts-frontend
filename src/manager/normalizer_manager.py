@@ -6,14 +6,14 @@ the normalizer module, as well as pos-tags delivered by the normalizer module.
 """
 import difflib
 from typing import Union, Tuple
-from .tokens import Token, CleanToken, NormalizedToken, TagToken
-from .tokens_manager import extract_text, extract_sentences
+from .tokens import Token, CleanToken, NormalizedToken, TagToken, Normalized
+from .tokens_manager import extract_text, extract_sentences_by_tokens
 #production
-from regina_normalizer import abbr_functions
-from regina_normalizer import number_functions
+#from regina_normalizer import abbr_functions
+#from regina_normalizer import number_functions
 #local testing
-#from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import abbr_functions
-#from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import number_functions
+from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import abbr_functions
+from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import number_functions
 
 
 class NormalizerManager:
@@ -81,144 +81,171 @@ class NormalizerManager:
         """Normalizes the text represented by the token list,
         assembles a new list of NormalizedTokens and TagTokens, if any are in the token list or if tags are added
         during normalization."""
-        # TODO: refactor, extract methods
-        normalized_tokens = []
+
         pre_normalized = []
         final_normalized = []
-        text_arr = extract_sentences(token_list)
+        text_arr = extract_sentences_by_tokens(token_list)
         for sent in text_arr:
             pre, final = self.normalize(sent)
             pre_normalized.extend(pre)
             final_normalized.extend(final)
 
+        normalized_tokens = self.align_normalized(token_list, pre_normalized, final_normalized)
+        return normalized_tokens
+
+    def align_normalized(self, token_list, pre_normalized, final_normalized):
+        normalized_tokens = []
         pre_norm_index = 0
         norm_index = 0
         i = 0
         # iterate through the original tokens
         while i < len(token_list):
             tok = token_list[i]
-            norm_index_counter = 0 # indicates how many indices further we move internally in the normalized list during each iteration
+            # indicates how many indices further we move internally in the normalized list during each iteration
+            norm_index_counter = 0
             if isinstance(tok, TagToken):
                 normalized_tokens.append(tok)
-                norm_index -= 1 # normalized token list does not contain the tagTokens, so we need to go back with the index
+                # normalized token list does not contain the tagTokens, so we need to go back with the index
+                norm_index -= 1
                 pre_norm_index -= 1
             else:
-                original_token = tok.name
+                original_token = ' '.join(tok.tokenized)
                 normalized_base_token = final_normalized[norm_index][0]
                 if not original_token:
-                    norm_tok = self.init_normalized(tok, '', '')
-                    normalized_tokens.append(norm_tok)
+                    # TODO: what does this represent? We have something normalized but no original token name?
+                    normalized_tokens.append(tok)
                     norm_index -= 1
                     pre_norm_index -= 1
                 # (2021,2021) vs. (2021, tvö þúsund tuttugu og eitt)
                 elif normalized_base_token == original_token and len(final_normalized[norm_index][1].split()) > 1:
+                    normalized_arr = []
                     for wrd in final_normalized[norm_index][1].split():
                         punct = ''
                         if wrd.endswith(',') or wrd.endswith('.'):
                             punct = wrd[-1]
                             wrd = wrd[:-1]
                         if wrd:
-                            norm_tok = self.init_normalized(tok, wrd,
-                                                   final_normalized[norm_index][2])
-                            normalized_tokens.append(norm_tok)
+                            if wrd.startswith('<'):
+                                normalized = Normalized(wrd, 'TAG')
+                            else:
+                                normalized = Normalized(wrd, final_normalized[norm_index][2])
+                            normalized_arr.append(normalized)
                         if punct:
                             # for IceParser the pos of a puncutation char is the punctuation char itself
-                            punct_tok = self.init_normalized(tok, punct, punct)
-                            normalized_tokens.append(punct_tok)
-
+                            normalized = Normalized(punct, punct)
+                            normalized_arr.append(normalized)
+                    tok.set_normalized(normalized_arr)
+                    normalized_tokens.append(tok)
 
                 # (10,10) vs. (10, tíu, ta)
                 elif normalized_base_token == original_token:
-                    wrd = final_normalized[norm_index][1]
+                    wrd = final_normalized[norm_index][1].strip()
                     punct = ''
+                    normalized_arr = []
                     if wrd.endswith(',') or wrd.endswith('.'):
                         punct = wrd[-1]
                         wrd = wrd[:-1]
                     if wrd:
-                        norm_tok = self.init_normalized(tok, wrd,
-                                               final_normalized[norm_index][2])
-                        normalized_tokens.append(norm_tok)
+                        if wrd.startswith('<'):
+                            normalized = Normalized(wrd, 'TAG')
+                        else:
+                            normalized = Normalized(wrd, final_normalized[norm_index][2])
+                        normalized_arr.append(normalized)
                     if punct:
                         # for IceParser the pos of a puncutation char is the punctuation char itself
-                        punct_tok = self.init_normalized(tok, punct, punct)
-                        normalized_tokens.append(punct_tok)
+                        normalized = Normalized(punct, punct)
+                        normalized_arr.append(normalized)
+                    tok.set_normalized(normalized_arr)
+                    normalized_tokens.append(tok)
 
 
                 # (-,til) vs. (til, til)
                 elif pre_normalized[pre_norm_index][0] == original_token and normalized_base_token == pre_normalized[pre_norm_index][1]:
-                    wrd = final_normalized[norm_index][1]
+                    wrd = final_normalized[norm_index][1].strip()
                     punct = ''
+                    normalized_arr = []
                     if wrd.endswith(',') or wrd.endswith('.'):
                         punct = wrd[-1]
                         wrd = wrd[:-1]
                     if wrd:
-                        norm_tok = self.init_normalized(tok, wrd,
-                                               final_normalized[norm_index][2])
-                        normalized_tokens.append(norm_tok)
+                        if wrd.startswith('<'):
+                            normalized = Normalized(wrd, 'TAG')
+                        else:
+                            normalized = Normalized(wrd, final_normalized[norm_index][2])
+                        normalized_arr.append(normalized)
                     if punct:
                         # for IceParser the pos of a puncutation char is the punctuation char itself
-                        punct_tok = self.init_normalized(tok, punct, punct)
-                        normalized_tokens.append(punct_tok)
+                        normalized = Normalized(punct, punct)
+                        normalized_arr.append(normalized)
+                    tok.set_normalized(normalized_arr)
+                    normalized_tokens.append(tok)
 
                 # (m/s,metrar á sekúndu) vs. (metrar, metrar, nkfn) (á, á, af), (sekúndu, sekúndu, nveþ)
                 # -> three tokens with original 'm/s' and the same index as 'm/s'
                 elif pre_normalized[pre_norm_index][0] == original_token and len(pre_normalized[pre_norm_index][1].split()) > 1:
+                    normalized_arr = []
                     for j, wrd in enumerate(pre_normalized[pre_norm_index][1].split()):
                         if final_normalized[norm_index+j][0] == wrd:
                             norm_wrd = final_normalized[norm_index+j][1]
                             punct = ''
-                            if norm_wrd.endswith(',') or wrd.endswith('.'):
+                            if norm_wrd.endswith(',') or norm_wrd.endswith('.'):
                                 punct = norm_wrd[-1]
                                 norm_wrd = norm_wrd[:-1]
                             if norm_wrd:
-                                norm_tok = self.init_normalized(tok, norm_wrd,
-                                                       final_normalized[norm_index + j][2])
-                                normalized_tokens.append(norm_tok)
+                                if norm_wrd.startswith('<'):
+                                    normalized = Normalized(norm_wrd, 'TAG')
+                                else:
+                                    normalized = Normalized(norm_wrd, final_normalized[norm_index+j][2])
+                                normalized_arr.append(normalized)
                             if punct:
                                 # for IceParser the pos of a puncutation char is the punctuation char itself
-                                punct_tok = self.init_normalized(tok, punct, punct)
-                                normalized_tokens.append(punct_tok)
+                                normalized = Normalized(punct, punct)
+                                normalized_arr.append(normalized)
 
                             norm_index_counter = j
 
                         else:
                             break
-                elif original_token != pre_normalized[pre_norm_index][0]:
-                    # we have some changes during pre-normalization, e.g. from '570 1234' -> '570-1234'
-                    # so we need to reconstruct the original and clean tokens
-                    new_clean = pre_normalized[pre_norm_index][0]
-                    new_original = Token(pre_normalized[pre_norm_index][0])
-                    new_original.set_index(tok.token_index)
-                    span_start = tok.get_original_token().start
-                    span_end = tok.get_original_token().end
-                    new_token_name = original_token
-                    while new_original.name != new_token_name:
-                        if isinstance(token_list[i + 1], TagToken):
-                            normalized_tokens.append(tok)
-                            norm_index -= 1
-                            pre_norm_index -= 1
-                            break
-                        else:
-                            i += 1
-                            continued_token = token_list[i]
-                            new_token_name += ' ' + continued_token.name
-                            span_end = continued_token.get_original_token().end
-                    new_original.set_span(span_start, span_end)
-                    new_clean_tok = CleanToken(new_original)
-                    new_clean_tok.set_clean(new_clean)
-                    new_clean_tok.set_index(new_original.token_index)
-                    norm_tok = self.init_normalized(new_original, final_normalized[norm_index][1], final_normalized[norm_index][2])
-                    normalized_tokens.append(norm_tok)
-                    #counter_subtraction = len(new_original.name.split()) - 1
-                    #pre_norm_index -= counter_subtraction
-                    #norm_index -= counter_subtraction
-                    #i += 1
+                    tok.set_normalized(normalized_arr)
+                    normalized_tokens.append(tok)
+
+                # the tokenizer has split up the original token, so the original token tokenized spans more than
+                # one entry in pre_normalized
+                # Example: 10-12 gets split up into 10 - 12
+                elif original_token.startswith(pre_normalized[pre_norm_index][0]):
+                    normalized_arr = []
+                    for j in range(len(tok.tokenized)):
+                        pre_norm_index += 1
+                        norm_wrd = final_normalized[norm_index + j][1].strip()
+                        punct = ''
+                        if norm_wrd.endswith(',') or norm_wrd.endswith('.'):
+                            punct = norm_wrd[-1]
+                            norm_wrd = norm_wrd[:-1]
+                        if norm_wrd:
+                            if norm_wrd.startswith('<'):
+                                normalized = Normalized(norm_wrd, 'TAG')
+                            else:
+                                normalized = Normalized(norm_wrd, final_normalized[norm_index + j][2])
+                            normalized_arr.append(normalized)
+                        if punct:
+                            # for IceParser the pos of a puncutation char is the punctuation char itself
+                            normalized = Normalized(punct, punct)
+                            normalized_arr.append(normalized)
+
+                        norm_index_counter = j
+
+                    tok.set_normalized(normalized_arr)
+                    normalized_tokens.append(tok)
+                    pre_norm_index -= 1
+
+
+
 
                 # no change in normalization
                 else:
-                    norm_tok = self.init_normalized(tok, final_normalized[norm_index][1],
-                                           final_normalized[norm_index][2])
-                    normalized_tokens.append(norm_tok)
+                    tok.set_normalized([Normalized(final_normalized[norm_index][1],
+                                           final_normalized[norm_index][2])])
+                    normalized_tokens.append(tok)
 
             i += 1
             pre_norm_index += 1

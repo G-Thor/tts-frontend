@@ -128,9 +128,8 @@ class Manager:
         """
 
         clean = self.clean(text, html)
-        tokenized = self.tokenizer.detect_sentences(extract_text(clean))
-        clean_tokenized = align_tokens(clean, tokenized, split_sent)
-        normalized = self.normalizer.normalize_token_list(clean_tokenized)
+        tokenized = self.tokenize_from_list(clean)
+        normalized = self.normalizer.normalize_token_list(tokenized)
         normalized_with_tag_tokens = self.phrasing.add_pause_tags(normalized)
         return normalized_with_tag_tokens
 

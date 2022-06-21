@@ -4,10 +4,18 @@ from .tokens import Token, TagToken, CleanToken, NormalizedToken
 from .settings import SENTENCE_TAG
 
 
+def format_telephonenumbers(text: str) -> str:
+    """To prevent align problems at later stages, already here convert numbers in the format
+    \d\d\d \d\d\d\d to a format with a hyphen, e.g. 557 1234 -> 557-1234
+    Otherwise the normalizer will perform this change, causing later alignment processes to break."""
+    telephone_formatted = re.sub(r'(\d{3}) (\d{4})','\g<1>-\g<2>', text)
+    return telephone_formatted
+
 def init_tokens(text: str) -> list:
     tokens_list = []
     running_char_ind = 0
-    for tok in text.split():
+    edited = format_telephonenumbers(text)
+    for tok in edited.split():
         if not tok:
             continue
         base_token = Token(tok.strip())
@@ -50,6 +58,26 @@ def extract_clean(token_list: list, ignore_tags=True, word_separator='') -> str:
         return ' '.join(token_strings)
 
 
+def extract_normalized_text(token_list: list, ignore_tags=True, word_separator='') -> str:
+    token_strings = []
+    for elem in token_list:
+        if isinstance(elem, TagToken) and ignore_tags:
+            continue
+        if isinstance(elem, TagToken):
+            token_strings.append(elem.name)
+            continue
+        if not elem.normalized:
+            continue
+        for norm in elem.normalized:
+            # TODO: check normalizer: why does it return punctuation?
+            if norm.norm_str != ',':
+                token_strings.append(norm.norm_str)
+    if word_separator:
+        return f' {word_separator} '.join(token_strings)
+    else:
+        return ' '.join(token_strings).strip()
+
+
 def extract_sentences(token_list: list, ignore_tags=True, word_separator='') -> list:
     """Return a list of sentences as represented in token_list. Even if ignore_tags is set to
     True we check for sentence tags to split the list into sentences."""
@@ -69,6 +97,36 @@ def extract_sentences(token_list: list, ignore_tags=True, word_separator='') -> 
             continue
         else:
             sent_tokens.append(elem.name)
+
+    if sent_tokens:
+        if word_separator:
+            sent = f' {word_separator} '.join(sent_tokens)
+        else:
+            sent = ' '.join(sent_tokens)
+        sentences.append(sent)
+
+    return sentences
+
+
+def extract_sentences_by_tokens(token_list: list, ignore_tags=True, word_separator='') -> list:
+    """Return a list of sentences as represented in token_list. Even if ignore_tags is set to
+    True we check for sentence tags to split the list into sentences."""
+    sentences = []
+    sent_tokens = []
+    for elem in token_list:
+        if isinstance(elem, TagToken) and elem.name == SENTENCE_TAG:
+            if word_separator:
+                sent = f' {word_separator} '.join(sent_tokens)
+            else:
+                sent = ' '.join(sent_tokens)
+            sentences.append(sent)
+            sent_tokens = []
+        elif isinstance(elem, TagToken) and ignore_tags:
+            continue
+        elif not elem.tokenized:
+            continue
+        else:
+            sent_tokens.extend(elem.tokenized)
 
     if sent_tokens:
         if word_separator:
@@ -180,7 +238,8 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
             aligned_list.append(token)
             tokenized_counter -= 1
         else:
-            non_splitted_token = [token_list[tokenized_counter]]
+            non_splitted_token = token_list[tokenized_counter]
+            tokenized_arr = [non_splitted_token]
             next_is_tag = False
             while non_splitted_token != re.sub(pattern, '', token.clean) and tokenized_counter < len(token_list) - 2:
                 tokenized_counter += 1
@@ -190,10 +249,12 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
                     aligned_list.append(token)
                     next_is_tag = True
                     break
-                non_splitted_token.append(token_list[tokenized_counter])
+                tokenized_arr.append(token_list[tokenized_counter])
+                non_splitted_token = ''.join(tokenized_arr)
             if not next_is_tag:
-                token.set_tokenized(non_splitted_token)
+                token.set_tokenized(tokenized_arr)
                 aligned_list.append(token)
+                #tokenized_counter -= 1
         clean_counter += 1
         tokenized_counter += 1
 

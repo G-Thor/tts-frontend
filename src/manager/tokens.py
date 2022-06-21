@@ -13,19 +13,23 @@ class Token:
         self.token_index = -1
         self.start = -1
         self.end = -1
+        self.clean = ''
         self.tokenized = []
+        self.normalized = []
         self.nsw = False
 
     def __repr__(self):
         return f"\nToken:\n" \
                f"Original: {self.name}, Clean: {self.clean},\n" \
                f"Tokenized: {self.tokenized},\n" \
+               f"Normalized: {str(self.normalized)}\n" \
                f"index: {self.token_index}, {self.start}, {self.end}\n"
 
     def __str__(self):
         return f"\nToken:\n" \
                f"Original: {self.name}, Clean: {self.clean},\n" \
                f"Tokenized: {self.tokenized},\n" \
+               f"Normalized: {str(self.normalized)}\n" \
                f"index: {self.token_index}, {self.start}, {self.end}\n"
 
     def __eq__(self, other):
@@ -50,6 +54,28 @@ class Token:
     def set_tokenized(self, tokens: list):
         """Add a list of tokens generated from base token. We only have more than one token for NSWs"""
         self.tokenized = tokens
+
+    def set_normalized(self, normalized: list):
+        """Add a list of normalized objects generated from base token."""
+        self.normalized = normalized
+
+
+class Normalized:
+
+    def __init__(self, normalized: str, pos: str):
+        self.norm_str = normalized
+        self.pos = pos
+
+    def __repr__(self):
+        return f"{self.norm_str}, {self.pos}"
+
+    def __str__(self):
+        return f"{self.norm_str}, {self.pos}"
+
+    def __eq__(self, other):
+        if isinstance(other, Normalized):
+            return other.norm_str == self.norm_str and other.pos == self.pos
+        return False
 
 
 class CleanToken:
