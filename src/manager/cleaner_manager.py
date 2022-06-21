@@ -5,20 +5,17 @@ possibly contain TagTokens, created from SSML-tags inserted by the cleaner modul
 
 """
 
-from typing import Tuple
+from .settings import PUNCTUATION
 
-from .settings import (
-    HTML_CLOSING_TAG_REPL,
-    PUNCTUATION,
-    VALID_CHARACTERS,
-)
-
-from .tokens import CleanToken, TagToken
+from .tokens import TagToken
 from .tokens_manager import init_tokens
 from text_cleaner import TextCleaner
 from text_cleaner import HtmlCleaner
 
-SSML_LANG_START = '<lang'
+EN_LABEL = '(e.'
+CLOSING_PAR = ')'
+# SSML 1.1 standard
+SSML_LANG_START = '<lang xml:lang="en-GB">'
 SSML_LANG_END = '</lang>'
 
 
@@ -32,116 +29,46 @@ class CleanerManager:
         self.next_token_index = 0
 
     def clean_text(self, text: str) -> list:
-        """The text attribute should be raw text, i.e. not html. Returns a list of CleanTokens."""
-        orig_tokens, clean_tokens = self.create_token_lists(text)
-        clean_tokens_list = self.align_token_lists(orig_tokens, clean_tokens)
-        return clean_tokens_list
-
-    def create_token_lists_from_html(self, html_string: str) -> Tuple[list, list]:
-        """Extract raw tokens list and clean tokens list from html_string."""
-        raw_text = self.html_cleaner.clean_html(html_string)
-        cleaned = self.cleaner.clean(raw_text)
-        token_list = init_tokens(raw_text)
-        clean_tokens = init_tokens(cleaned)
-        return token_list, clean_tokens
-
-    def create_token_lists(self, text: str) -> Tuple[list, list]:
-        """Extract raw tokens list and clean tokens list from text."""
-        cleaned = self.cleaner.clean(text)
+        """The text attribute should be raw text, i.e. not html. Returns a list of tokens enriched with clean version
+        of each token."""
         token_list = init_tokens(text)
-        clean_tokens = init_tokens(cleaned)
-        return token_list, clean_tokens
-
-    def html_to_raw(self, html_string: str):
-        """The html parser is designed around the EPUB-format and will parse the html_string accordingly.
-        Returns a raw string representation of the html content"""
-
-        return self.clean_html_text(html_string)
-
-    def orig_token_deleted(self, orig_list, clean_list, current_index) -> bool:
-        """Check if symbols from orig_list have been deleted during cleaning. Mostly we will have one deleted
-        symbol, but there might be a sequence of them, so search for the next common token while tokens from
-        orig_list ar non alpha-numeric, i.e. might have been deleted"""
-        current_clean = clean_list[0]
-        for i in range(len(orig_list)):
-            if orig_list[i].name == current_clean.name:
-                self.next_token_index = current_index + i
-                return True
-        return False
-
-    def is_ssml(self, token: str) -> bool:
-        if self.is_ssml_start(token):
-            return True
-        return self.is_ssml_end(token)
-
-    def is_ssml_start(self, token: str) -> bool:
-        return token == SSML_LANG_START
-
-    def is_ssml_end(self, token: str) -> bool:
-        return token.startswith(SSML_LANG_END)
+        clean_tokens = self.clean_token_list(token_list)
+        return clean_tokens
 
     def clean_html_text(self, html_string: str) -> list:
         """The html parser is designed around the EPUB-format and will parse the html_string accordingly.
         Returns a list of CleanTokens, with TagTokens if any SSML-tags were created by the cleaner."""
+        clean_tokens = self.create_token_lists_from_html(html_string)
+        return clean_tokens
 
-        orig_tokens, clean_tokens = self.create_token_lists_from_html(html_string)
-        clean_tokens_list = self.align_token_lists(orig_tokens, clean_tokens)
-        return clean_tokens_list
+    def create_token_lists_from_html(self, html_string: str) -> list:
+        """Extract raw tokens list and clean tokens list from html_string."""
+        raw_text = self.html_cleaner.clean_html(html_string)
+        token_list = init_tokens(raw_text)
+        clean_tokens = self.clean_token_list(token_list)
+        return clean_tokens
 
-    def align_token_lists(self, orig_tokens, clean_tokens):
-        clean_tokens_list = []
-        clean_counter = 0
-        orig_counter = 0
-
-        # Create a list of CleanTokens from orig_tokens and clean_tokens.
-        # Take care to insert SSML-TagTokens from clean_tokens in the correct way and adjust indices accordingly
-        while orig_counter < len(orig_tokens) and clean_counter < len(clean_tokens):
-            orig_token = orig_tokens[orig_counter]
-            clean_html_token = clean_tokens[clean_counter]
-            if orig_token.name == clean_html_token.name and not self.is_ssml(clean_html_token.name):
-                orig_token.set_index(len(clean_tokens_list))
-                clean_token = CleanToken(orig_token)
-                clean_token.set_clean(clean_html_token.name)
-                clean_tokens_list.append(clean_token)
+    def clean_token_list(self, token_list: list) -> list:
+        """Extract raw tokens list from text and enrich with a clean version."""
+        lang_tag = ''
+        clean_tokens = []
+        for token in token_list:
+            clean_tok = self.cleaner.clean(token.name)
+            if clean_tok == EN_LABEL:
+                lang_tag = SSML_LANG_START
+                tag_tok = TagToken(lang_tag, token.token_index)
+                tag_tok.ssml_start = True
+                clean_tokens.append(tag_tok)
+            elif clean_tok.endswith(CLOSING_PAR) and lang_tag:
+                tag_tok = TagToken(SSML_LANG_END, token.token_index)
+                tag_tok.ssml_end = True
+                if len(clean_tok) > 1:
+                    wrd = clean_tok[:-1]
+                    token.set_clean(wrd)
+                    clean_tokens.append(token)
+                clean_tokens.append(tag_tok)
+                lang_tag = ''
             else:
-                if self.is_ssml_start(clean_html_token.name):
-                    next_clean = clean_tokens[clean_counter + 1]
-                    tag_str = SSML_LANG_START + ' ' + next_clean.name
-                    tag_tok = TagToken(tag_str, len(clean_tokens_list))
-                    tag_tok.ssml_start = True
-                    clean_tokens_list.append(tag_tok)
-                    clean_counter += 1
-                    if orig_token.name == clean_html_token.name:
-                        orig_counter += 1
-                elif self.is_ssml_end(clean_html_token.name):
-                    tag_tok = TagToken(SSML_LANG_END, len(clean_tokens_list))
-                    tag_tok.ssml_end = True
-                    clean_tokens_list.append(tag_tok)
-                    if orig_token.name != clean_html_token.name:
-                        orig_token.set_index(len(clean_tokens_list))
-                        clean_token = CleanToken(orig_token)
-                        clean_token.set_clean(clean_tokens[clean_counter + 1].name)
-                        clean_tokens_list.append(clean_token)
-                        clean_counter += 1
-                # did the cleaner delete the orig_token?
-                elif self.orig_token_deleted(orig_tokens[orig_counter:], clean_tokens[clean_counter:], orig_counter):
-                    ind_range = self.next_token_index - orig_counter
-                    for i in range(ind_range):
-                        deleted_token = CleanToken(orig_tokens[orig_counter + i])
-                        deleted_token.set_clean('')
-                        clean_tokens_list.append(deleted_token)
-                    clean_token = CleanToken(orig_tokens[self.next_token_index])
-                    clean_token.set_clean(clean_html_token.name)
-                    clean_tokens_list.append(clean_token)
-                    orig_counter += ind_range
-                # if we reach this, the clean token should be a clean version of orig token,
-                # e.g. 'horizontal' vs. 'horisontal'
-                else:
-                    orig_token.set_index(len(clean_tokens_list))
-                    clean_token = CleanToken(orig_token)
-                    clean_token.set_clean(clean_html_token.name)
-                    clean_tokens_list.append(clean_token)
-            clean_counter += 1
-            orig_counter += 1
-
-        return clean_tokens_list
+                token.set_clean(clean_tok)
+                clean_tokens.append(token)
+        return clean_tokens

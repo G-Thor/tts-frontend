@@ -13,12 +13,20 @@ class Token:
         self.token_index = -1
         self.start = -1
         self.end = -1
+        self.tokenized = []
+        self.nsw = False
 
     def __repr__(self):
-        return f"Token({self.name}, {self.token_index}, {self.start}, {self.end})"
+        return f"\nToken:\n" \
+               f"Original: {self.name}, Clean: {self.clean},\n" \
+               f"Tokenized: {self.tokenized},\n" \
+               f"index: {self.token_index}, {self.start}, {self.end}\n"
 
     def __str__(self):
-        return f"Token: {self.name}, index: {self.token_index}, span: {self.start} - {self.end}"
+        return f"\nToken:\n" \
+               f"Original: {self.name}, Clean: {self.clean},\n" \
+               f"Tokenized: {self.tokenized},\n" \
+               f"index: {self.token_index}, {self.start}, {self.end}\n"
 
     def __eq__(self, other):
         if isinstance(other, Token):
@@ -33,6 +41,15 @@ class Token:
         """Span in text, from and including start to and excluding end."""
         self.start = start
         self.end = end
+
+    def set_clean(self, clean: str):
+        """Add a cleaned version of the original token"""
+        # TODO: is this ever more than one token?
+        self.clean = clean
+
+    def set_tokenized(self, tokens: list):
+        """Add a list of tokens generated from base token. We only have more than one token for NSWs"""
+        self.tokenized = tokens
 
 
 class CleanToken:

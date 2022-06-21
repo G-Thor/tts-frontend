@@ -23,7 +23,7 @@ from .settings import (
     VALID_CHARACTERS,
 )
 from .tts_tokenizer import Tokenizer
-from .tokens_manager import extract_text, extract_sentences, align_tokens
+from .tokens_manager import extract_text, extract_clean, extract_sentences, align_tokens
 from .cleaner_manager import CleanerManager
 from .normalizer_manager import NormalizerManager
 from .spellchecker_manager import SpellCheckerManager
@@ -102,6 +102,19 @@ class Manager:
         else:
             clean = self.cleaner.clean_text(text)
         return clean
+
+    def tokenize_from_list(self, text_as_list: list, split_sent=True) -> list:
+        """
+        Tokenize text extracted from text_as_list, add tokenized field to the tokens in text_as_list.
+        Return enriched token list.
+
+        :param text_as_list: a list of original or clean tokens
+        :param split_sent: if True, the resulting list will contain sentence split tagTokens
+        :return:
+        """
+        tokenized = self.tokenizer.detect_sentences(extract_clean(text_as_list))
+        clean_tokenized = align_tokens(text_as_list, tokenized, split_sent)
+        return clean_tokenized
 
     def normalize(self, text: str, html=False, split_sent=True) -> list:
         """

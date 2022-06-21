@@ -3,6 +3,7 @@ import re
 from .tokens import Token, TagToken, CleanToken, NormalizedToken
 from .settings import SENTENCE_TAG
 
+
 def init_tokens(text: str) -> list:
     tokens_list = []
     running_char_ind = 0
@@ -26,6 +27,23 @@ def extract_text(token_list: list, ignore_tags=True, word_separator='') -> str:
         if not elem.name:
             continue
         token_strings.append(elem.name)
+    if word_separator:
+        return f' {word_separator} '.join(token_strings)
+    else:
+        return ' '.join(token_strings)
+
+
+def extract_clean(token_list: list, ignore_tags=True, word_separator='') -> str:
+    token_strings = []
+    for elem in token_list:
+        if isinstance(elem, TagToken) and ignore_tags:
+            continue
+        if isinstance(elem, TagToken):
+            token_strings.append(elem.name)
+            continue
+        if not elem.clean:
+            continue
+        token_strings.append(elem.clean)
     if word_separator:
         return f' {word_separator} '.join(token_strings)
     else:
@@ -111,6 +129,83 @@ def extract_tokenized_text(sentences: list, sent_split=False) -> str:
 
 
 def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False) -> list:
+    """Compare token_list to the tokenized string and adjust tokens list if they differ.
+    We compare length of token_list to the length of tokenized.split(). If they differ in length
+    we compare them tokenwise, and also compare the tokens by length.
+    This alignment is necessary since the cleaning is done before the tokenizing.
+
+    :param clean_token_list: a tokenList containing cleaned tokens, but not necessarily correctly tokenized
+    :param tokenized: a tokenized version of the tokenList as a list of sentences, tokens separated by a space
+    :return a list of cleanTokens, possibly a longer one than the original"""
+
+    clean_str = extract_clean(clean_token_list)
+    tokenized_string = extract_tokenized_text(tokenized, sent_split=split_sent)
+    # make sure we are merging token lists created from the same string
+    # remove white spaces and sentence tags, since the tokenizer might have added spaces and the tokenized
+    # string might already containe sentence tags
+    tmp_tokenized = tokenized_string.replace(SENTENCE_TAG, '.')
+    pattern = re.compile(r'[\s.]+')
+    if re.sub(pattern, '', clean_str) != re.sub(pattern, '', tmp_tokenized):
+        logging.error(clean_str + ' and ' + tokenized_string + ' are not the same, can not merge token lists!')
+        raise ValueError('params do not represent the same original string!')
+
+    token_list = tokenized_string.split()
+    aligned_list = []
+    clean_counter = 0
+    tokenized_counter = 0
+    # if the token_list containes tags, we need to step back in the enumeration of the clean_token_list
+    set_step_back_counter = False
+    while clean_counter < len(clean_token_list):
+        if set_step_back_counter:
+            clean_counter -= 1
+            set_step_back_counter = False
+        token = clean_token_list[clean_counter]
+        if tokenized_counter >= len(token_list):
+            print('tokenized: ' + str(tokenized_counter) + ', cleaned: ' + str(clean_counter) + ' ' + token.name)
+        elif token.name == token_list[tokenized_counter]:
+            token.set_tokenized([token_list[tokenized_counter]])
+            aligned_list.append(token)
+        elif isinstance(token, TagToken):
+            aligned_list.append(token)
+            # tag tokens are not present in token_list, halt the counting for token_list
+            tokenized_counter -= 1
+        elif token_list[tokenized_counter].startswith('<'):
+            tag_token = TagToken(token_list[tokenized_counter], clean_counter)
+            aligned_list.append(tag_token)
+            set_step_back_counter = True
+        elif not token.clean:
+            # clean token is empty, meaning original token was deleted during cleaning
+            # repeat comparison with tokenized list in the next round
+            token.set_tokenized([])
+            aligned_list.append(token)
+            tokenized_counter -= 1
+        else:
+            non_splitted_token = [token_list[tokenized_counter]]
+            next_is_tag = False
+            while non_splitted_token != re.sub(pattern, '', token.clean) and tokenized_counter < len(token_list) - 2:
+                tokenized_counter += 1
+                if token_list[tokenized_counter].startswith('<'):
+                    tokenized_counter -= 1
+                    token.set_tokenized(non_splitted_token)
+                    aligned_list.append(token)
+                    next_is_tag = True
+                    break
+                non_splitted_token.append(token_list[tokenized_counter])
+            if not next_is_tag:
+                token.set_tokenized(non_splitted_token)
+                aligned_list.append(token)
+        clean_counter += 1
+        tokenized_counter += 1
+
+    # last closing tag in token_list?
+    if tokenized_counter < len(token_list) and token_list[tokenized_counter].startswith('<'):
+        tag_token = TagToken(token_list[tokenized_counter], clean_counter)
+        aligned_list.append(tag_token)
+
+    return aligned_list
+
+
+def align_tokens1(clean_token_list: list, tokenized: list, split_sent: bool=False) -> list:
     """Compare token_list to the tokenized string and adjust tokens list if they differ.
     We compare length of token_list to the length of tokenized.split(). If they differ in length
     we compare them tokenwise, and also compare the tokens by length.
