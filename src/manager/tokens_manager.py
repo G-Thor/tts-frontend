@@ -70,7 +70,7 @@ def extract_normalized_text(token_list: list, ignore_tags=True, word_separator='
             continue
         for norm in elem.normalized:
             # TODO: check normalizer: why does it return punctuation?
-            if norm.norm_str != ',':
+            if norm.norm_str not in [',', '.', '(', ')', '/']:
                 token_strings.append(norm.norm_str)
     if word_separator:
         return f' {word_separator} '.join(token_strings)
@@ -255,11 +255,11 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
             non_splitted_token = token_list[tokenized_counter]
             tokenized_arr = [non_splitted_token]
             next_is_tag = False
-            while non_splitted_token != re.sub(pattern, '', token.clean) and tokenized_counter < len(token_list) - 2:
+            while non_splitted_token != re.sub('\s+', '', token.clean) and tokenized_counter < len(token_list) - 2:
                 tokenized_counter += 1
                 if token_list[tokenized_counter].startswith('<'):
                     tokenized_counter -= 1
-                    token.set_tokenized(non_splitted_token)
+                    token.set_tokenized(tokenized_arr)
                     aligned_list.append(token)
                     next_is_tag = True
                     break

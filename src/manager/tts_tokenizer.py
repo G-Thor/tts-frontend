@@ -13,6 +13,8 @@ class Tokenizer:
     def __init__(self, abbreviations: set, nonending_abbr: set):
         self.abbreviations = abbreviations
         self.abbreviations_non_ending = nonending_abbr
+        # if True, prevents a space once set to be deleted at later processing stages, in append_token()
+        self.freeze_space = False
 
     @staticmethod
     def read_list(filename: str) -> list:
@@ -45,6 +47,7 @@ class Tokenizer:
             if last_token:
                 continue
             tmp_str = self.update_tmp_string(sentences, tmp_str, tokenized)
+            self.freeze_space = False
 
         self.finish_sentence(sentences, tmp_str, last_token)
         return sentences
@@ -102,11 +105,12 @@ class Tokenizer:
                 tmp_string = ''
         return tmp_string
 
-    @staticmethod
-    def append_token(tmp_string: str, token: str) -> str:
+    def append_token(self, tmp_string: str, token: str) -> str:
         """ 'token' might end with ' .', delete the space, because we are dealing with an abbreviation
         or a digits pattern that should not contain a space before the '.'"""
-        token = token.replace(' ', '')
+        if not self.freeze_space:
+            token = token.replace(' ', '')
+
         return tmp_string + token + ' '
 
     @staticmethod
@@ -156,7 +160,9 @@ class Tokenizer:
         # First, check if we need to process the token, several categories do not need further processing even if
         # the token contains a non-alphabetic character, just return the token as is
         if not self.should_process(token):
-            return token
+            # we need to insert spaces after and before enclosing parenthesis regardless
+            # of the return value of "should process"
+            return re.sub('(\\()(.+)(\\))', '\\g<1> \\g<2> \\g<3>', token)
 
         # For all kinds of punctuation we need to insert spaces at the correct positions
         # Patterns:
@@ -164,7 +170,7 @@ class Tokenizer:
         # insert space after these symbols: '(', '[', '{', '-', '_'
         insert_space_after_anywhere = '([(\\[{\\-/_])'
         # insert space before these symbols: ')', '[', '}' '-', '_'  TODO: shouldn't '[' be ']' ?
-        insert_space_before_anywhere = '([)\\]}\\-/_])'
+        insert_space_before_anywhere = '([)\\]}\\-/_%])'
         # insert space after these symbols at the beginning of a token: '"',
         insert_space_after_if_beginning = '^(\")(.+)'
         # insert space before these symbols at the end of a token: '"', ':', ',', '.', '!', '?'
@@ -188,9 +194,10 @@ class Tokenizer:
         """
         if len(token) <= 1:
             return False
-        # possibly a year at the end of a sentenc? If yes, we want the dot to be detached
+        # possibly a year at the end of a sentence? If yes, we want the dot to be detached
         # we only consider 4 digit years up to year 2099
         if re.fullmatch('(1\\d{3})|(20\\d{2})\\.', token):
+            self.freeze_space = True
             return True
         # a simple cardinal or ordinal number
         if re.fullmatch('\\d+\\.?', token):
@@ -215,7 +222,7 @@ class Tokenizer:
         # special cases - resolve! We need to have simple rules for when to split and when not, the tokenizer
         # should not have to know too much about the normalizer!
         if re.match('(millj./)|(.+/klst)|(.+/kwst)|(.+/gwst)|(.+/gw\\.st)|(.+/mwst)|(.+/twst)|(.+/m²)|(.+/m³)'
-                    '|(.+/mm²)|(.+/mm³)|(.+/cm²)|(.+/cm³)|(.+/ferm)|(.+/%)', token.lower()):
+                    '|(.+/mm²)|(.+/mm³)|(.+/cm²)|(.+/cm³)|(.+/ferm)', token.lower()):
             return False
         # don't split smileys TODO: add more patterns here
         if re.fullmatch('(:\))|(:\()', token):

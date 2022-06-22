@@ -15,13 +15,13 @@ SIL_TAG = '<sil>'
 class PhrasingManager:
 
     @staticmethod
-    def is_punct(tok: Token):
+    def get_punct_index(tok: Token):
         if isinstance(tok, TagToken):
             return False
-        for normalized in tok.normalized:
+        for i, normalized in enumerate(tok.normalized):
             if normalized.pos in ['.', ',', 'pg', 'pa', 'pl'] or tok.name == '/':
-                return True
-        return False
+                return i
+        return -1
 
     def phrase_text(self, tagged_text: str):
         MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -70,7 +70,7 @@ class PhrasingManager:
                 phrased_token_list.append(tag_tok)
                 # if we have a 'pure' punctuation token, do nothing further, but if the tag-token was added
                 # in between tokens as a result of phrasing, add the normalized token to the list as well
-                if not self.is_punct(token):
+                if self.get_punct_index(token) < 0:
                     phrased_token_list.append(token)
                     phrase_index += 1
             elif not token.name:
@@ -110,11 +110,23 @@ class PhrasingManager:
 
         phrased_token_list = []
         for i, token in enumerate(normalized_tokens):
-            if self.is_punct(token):
-                if len(token.normalized) > 1:
-                    phrased_token_list.append(token)
+            if isinstance(token, TagToken):
+                phrased_token_list.append(token)
+                continue
+            punct_index = self.get_punct_index(token)
+            if punct_index >= 0:
                 tag_tok = TagToken(SIL_TAG, token.token_index)
-                phrased_token_list.append(tag_tok)
+                # most often the punctuation will be at the end of a token, it can however be an opening
+                # parenthesis, meaning that the tag token needs to be added before the core token
+                # if length of token.normalized is == 1, we only add a tag token.
+                if len(token.normalized) > 1 and punct_index == 0:
+                    phrased_token_list.append(tag_tok)
+                    phrased_token_list.append(token)
+                elif len(token.normalized) > 1 and punct_index > 0:
+                    phrased_token_list.append(token)
+                    phrased_token_list.append(tag_tok)
+                else:
+                    phrased_token_list.append(tag_tok)
             else:
                 phrased_token_list.append(token)
 

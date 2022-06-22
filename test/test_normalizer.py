@@ -121,6 +121,85 @@ class TestNormalizer(unittest.TestCase):
             print(sent)
         #self.assertEqual(10, len(result))
 
+    def test_percent(self):
+        manager = Manager()
+        input_text = '1,5-2,5%'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('eitt komma fimm til tvö komma fimm prósent', result_str)
+
+    def test_hyphen(self):
+        manager = Manager()
+        input_text = 'Blikar heppnir, KR-ingar óheppnir.'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        # TODO: fix space issue in normalizer
+        self.assertEqual('Blikar heppnir <sil> K R  <sil>ingar <sil> óheppnir <sentence>', result_str)
+        input_text = 'EFTA-ríkin'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        # TODO: fix space issue in normalizer
+        self.assertEqual('E F T A  <sil>ríkin', result_str)
+        input_text = 'Evrópa (EFTA-ríkin)'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        # TODO: fix space issue in normalizer
+        self.assertEqual('Evrópa <sil> E F T A <sil>ríkin <sentence>', result_str)
+
+    def test_sport_results_time(self):
+        manager = Manager()
+        input_text = '100 metra bringusundi S14 þroskahamlaðra á 1:09,14 mínútu og var örskammt frá Íslandsmeti sínu ' \
+                     'í greininni sem er 1:09,01 mínúta.'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        self.assertEqual('hundrað metra bringusundi S fjórtán þroskahamlaðra á '
+                    'einni núll níu komma fjórtán mínútu og var örskammt frá Íslandsmeti sínu í greininni sem er ein núll '
+                    'níu komma núll ein mínúta.', result_str)
+
+    def test_born_dead(self):
+        manager = Manager()
+        input_text = 'Guðrún, f. 4. apríl 1927, d. 10. febrúar 2010.'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        self.assertEqual('Guðrún <sil> fædd fjórða apríl nítján hundruð tuttugu og sjö <sil>'
+                         ' dáin tíunda febrúar tvö þúsund og tíu <sentence>', result_str)
+
+    def test_digits(self):
+        manager = Manager()
+        input_text = 'Blálanga, óslægð 10.6.22 130,00 kr/kg. Er lagt til að ákvæðið gildi til 31. maí 2023.'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        self.assertEqual('Blálanga <sil> óslægð tíunda sjötta tuttugu og tvö hundrað og þrjátíu krónur'
+                         ' á kílóið <sentence> Er lagt til að ákvæðið gildi til þrítugasta og fyrsta'
+                         ' maí tvö þúsund tuttugu og þrjú <sentence>', result_str)
+
+    def test_year_digits(self):
+        manager = Manager()
+        input_text = 'síðan í mars 2010. mbl.is/​ Kristinn Magnússon'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        self.assertEqual('síðan í mars tvö þúsund og tíu <sil> m b l punktur i s <sil> Kristinn Magnússon <sentence>', result_str)
+
+    def test_year_digits_and_percent(self):
+        manager = Manager()
+        input_text = 'Í nýrri verðbólguspá Greiningar Íslandsbanka er því spáð að vísitala neysluverðs hækki um 1% í júní. ' \
+                    'Gangi spáin eftir mælist 12 mánaða verðbóla 8,4%, en hún hefur ekki mælst svo mikil síðan í mars ' \
+                    '2010. mbl.is/​ Kristinn Magnússon'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        self.assertEqual('Í nýrri verðbólguspá Greiningar Íslandsbanka er því spáð að vísitala neysluverðs hækki um eitt prósent í júní'
+                         ' <sentence> '
+                    'Gangi spáin eftir mælist tólf mánaða verðbóla átta komma fjögur prósent <sil> en hún hefur ekki mælst svo mikil síðan í mars '
+                    'tvö þúsund og tíu <sil> m b l punktur i s <sil> Kristinn Magnússon <sentence>',
+                result_str)
+
+    def test_normalize_div(self):
+        manager = Manager()
+        test_map = self.get_test_map()
+        for elem in test_map:
+            normalized = manager.normalize(elem, split_sent=True)
+            norm_text = tokens.extract_normalized_text(normalized)
+            self.assertEqual(norm_text, test_map[elem])
 
     def get_very_long_text(self):
         with open('../Akranes_10.txt') as f:
@@ -158,4 +237,27 @@ class TestNormalizer(unittest.TestCase):
                '(e. </span><em><span id="qitl_0596" class="sentence">sense of coherence).</span></em>' \
                '<span id="qitl_0597" class="sentence"> Sigrún Gunnarsdóttir hefur íslenskað skilgreiningu hugtaksins ' \
                'um tilfinningu fyrir samhengi í lífinu á eftirfarandi hátt: </span></p>'
+
+    def get_test_map(self):
+        test_map = {'Í Evrópu hélt lækkunin áfram þar sem markaðir lækkuðu á bilinu 1,5-2,5%' :
+                    'Í Evrópu hélt lækkunin áfram þar sem markaðir lækkuðu á bilinu eitt komma fimm til tvö komma fimm prósent',
+                    'Fríverslunarsamtaka Evrópu (EFTA-ríkin).' : 'Fríverslunarsamtaka Evrópu efta ríkin',
+                    '100 metra bringusundi S14 þroskahamlaðra á 1:09,14 mínútu og var örskammt frá Íslandsmeti sínu '
+                     'í greininni sem er 1:09,01 mínúta.' : 'hundrað metra bringusundi S fjórtán þroskahamlaðra á '
+                    'einni núll níu komma fjórtán mínútu og var örskammt frá Íslandsmeti sínu í greininni sem er ein núll '
+                    'níu komma núll ein mínúta.',
+                    'Foreldrar hans voru Jóna Einarsdóttir húsfreyja frá Túni á Eyrarbakka, f. 4. apríl 1927, d. 10. febrúar 2010.'  :
+                    'Foreldrar hans voru Jóna Einarsdóttir húsfreyja frá Túni á Eyrarbakka <sil> fædd fjórða apríl '
+                    'nítján hundruð tuttugu og sjö <sil> dáin tíunda febrúar tvö þúsund og tíu',
+                    'Blikar heppnir, KR-ingar óheppnir.' : 'Blikar heppnir <sil> K R ingar óheppnir',
+                    'Blálanga, óslægð 10.6.22 130,00 kr/kg. Er lagt til að ákvæðið gildi til 31. maí 2023.' :
+                    'Blálanga <sil> óslægð tíunda júní tuttugu og tvö hundrað og þrjátíu krónur á kílóið Er lagt til '
+                    'að ákvæðið gildi til þrítugasta og fyrsta maí tvö þúsund tuttugu og þrjú',
+                    'Í nýrri verðbólguspá Greiningar Íslandsbanka er því spáð að vísitala neysluverðs hækki um 1% í júní. '
+                    'Gangi spáin eftir mælist 12 mánaða verðbóla 8,4%, en hún hefur ekki mælst svo mikil síðan í mars '
+                    '2010. mbl.is/​ Kristinn Magnússon' :
+                    'Í nýrri verðbólguspá Greiningar Íslandsbanka er því spáð að vísitala neysluverðs hækki um eitt prósent í júní '
+                    'Gangi spáin eftir mælist tólf mánaða verðbóla átta komma fjögur prósent <sil> en hún hefur ekki mælst '
+                    'svo mikil síðan í mars tvö þúsund og tíu . m b l punktur is <sil> Kristinn Magnússon'}
+        return test_map
 
