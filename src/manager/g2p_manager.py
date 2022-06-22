@@ -6,7 +6,7 @@ a string in an input format for a TTS system. Following formats are supported:
 """
 import os
 
-from .tokens import Token, NormalizedToken, TranscribedToken, TagToken
+from .tokens import Token, Normalized, TranscribedToken, TagToken
 from ice_g2p.transcriber import Transcriber, G2P_METHOD
 
 
@@ -37,7 +37,7 @@ class G2PManager:
     def set_word_separator(self, word_sep: str):
         self.g2p.word_separator = word_sep
 
-    def generate_normalized(self, word: str, token_ind: int) -> NormalizedToken:
+    def generate_normalized(self, word: str, token_ind: int) -> Token:
         """
         Generates a Token and a NormalizedToken from word and token_ind. These are not results of processing but
         inserted tokens not present in the original text, like 'enska' to announce that the following word(s) are
@@ -48,10 +48,9 @@ class G2PManager:
         """
         base_token = Token(word)
         base_token.set_index(token_ind)
-        normalized = NormalizedToken(base_token)
-        normalized.set_normalized(word)
-        normalized.set_index(token_ind)
-        return normalized
+        base_token.set_tokenized([base_token])
+        base_token.set_normalized([Normalized(word, 'n')])
+        return base_token
 
     def transcribe(self, token_list: list) -> list:
         """Transcribes the tokens in token_list and returns a list of
@@ -70,9 +69,8 @@ class G2PManager:
                     transcribed_list.append(TagToken(SIL_TOKEN, token.token_index))
                     normalized = self.generate_normalized(ENGLISH, token.token_index)
                     transcribed = self.g2p.transcribe(ENGLISH)
-                    transcr_token = TranscribedToken(normalized)
-                    transcr_token.name = transcribed
-                    transcribed_list.append(transcr_token)
+                    normalized.set_transcribed([transcribed])
+                    transcribed_list.append(normalized)
                     transcribed_list.append(TagToken(SIL_TOKEN, token.token_index))
                 elif token.ssml_end:
                     is_icelandic = True
@@ -80,12 +78,13 @@ class G2PManager:
                 else:
                     transcribed_list.append(token)
             else:
-                transcribed = ''
-                if token.name:
-                    transcribed = self.g2p.transcribe(token.name.lower().strip(), icelandic=is_icelandic)
-                transcr_token = TranscribedToken(token)
-                transcr_token.name = transcribed
-                transcribed_list.append(transcr_token)
+                transcribed_arr = []
+                if token.normalized:
+                    for norm in token.normalized:
+                        transcribed = self.g2p.transcribe(norm.norm_str.lower().strip(), icelandic=is_icelandic)
+                        transcribed_arr.append(transcribed)
+                token.set_transcribed(transcribed_arr)
+                transcribed_list.append(token)
 
         return transcribed_list
 

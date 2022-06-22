@@ -16,6 +16,7 @@ class Token:
         self.clean = ''
         self.tokenized = []
         self.normalized = []
+        self.transcribed = []
         self.nsw = False
 
     def __repr__(self):
@@ -58,6 +59,10 @@ class Token:
     def set_normalized(self, normalized: list):
         """Add a list of normalized objects generated from base token."""
         self.normalized = normalized
+
+    def set_transcribed(self, transcribed: list):
+        """Add a list of normalized objects generated from base token."""
+        self.transcribed = transcribed
 
 
 class Normalized:

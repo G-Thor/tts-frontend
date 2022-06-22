@@ -77,6 +77,23 @@ def extract_normalized_text(token_list: list, ignore_tags=True, word_separator='
     else:
         return ' '.join(token_strings).strip()
 
+def extract_transcribed_text(token_list: list, ignore_tags=True, word_separator='') -> str:
+    token_strings = []
+    for elem in token_list:
+        if isinstance(elem, TagToken) and ignore_tags:
+            continue
+        if isinstance(elem, TagToken):
+            token_strings.append(elem.name)
+            continue
+        if not elem.transcribed:
+            continue
+        for transcr in elem.transcribed:
+            token_strings.append(transcr)
+    if word_separator:
+        return f' {word_separator} '.join(token_strings)
+    else:
+        return ' '.join(token_strings).strip()
+
 
 def extract_sentences(token_list: list, ignore_tags=True, word_separator='') -> list:
     """Return a list of sentences as represented in token_list. Even if ignore_tags is set to
@@ -138,16 +155,18 @@ def extract_sentences_by_tokens(token_list: list, ignore_tags=True, word_separat
     return sentences
 
 
-def extract_tokens_and_tag(token: NormalizedToken) -> list:
+def extract_tokens_and_tag(token: Token) -> list:
     # if token.name contains space(s), extract each token with the pos
     # e.g. name: 'fimm fimm sjö' pos: 'ta'
     # return: 'fimm ta fimm ta sjö ta'
 
     results = []
-    token_arr = token.name.split()
-    for tok in token_arr:
-        results.append(tok)
-        results.append(token.pos)
+
+    for tok in token.normalized:
+        results.append(tok.norm_str)
+        results.append(tok.pos)
+        if tok.pos == '.':
+            results.append('\n')
 
     return results
 
@@ -157,13 +176,8 @@ def extract_tagged_text(token_list: list, ignore_tags=True) -> str:
     for elem in token_list:
         if isinstance(elem, TagToken) and ignore_tags:
             continue
-        if not isinstance(elem, NormalizedToken):
-            ValueError('We can only extract tagged text from NormalizedTokens, not from ' + str(type(elem)))
         token_strings.extend(extract_tokens_and_tag(elem))
-        if elem.pos == '.':
-            token_strings.append('\n')
-        else:
-            token_strings.append(' ')
+
     return ' '.join(token_strings).strip()
 
 

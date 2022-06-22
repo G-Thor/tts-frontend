@@ -10,14 +10,14 @@ class TestTranscriber(unittest.TestCase):
         manager = Manager()
         input_text = 'hlaupa'
         transcribed = manager.transcribe(input_text)
-        result_str = tokens.extract_text(transcribed)
+        result_str = tokens.extract_transcribed_text(transcribed)
         self.assertEqual('l_0 9i: p a', result_str)
 
     def test_single_letters(self):
         manager = Manager()
         input_text = 'nýjasta LTS version af Ubuntu Server (20.04.3 LTS)'
         transcribed = manager.transcribe(input_text)
-        result_str = tokens.extract_text(transcribed)
+        result_str = tokens.extract_transcribed_text(transcribed)
         self.assertEqual('n i: j a s t a E t l_0 t_h j E: E s v 9 r s j O n a: f Y n_0 t Y s 9: r v E '
  'r t_h v ei: r n u l p_h u n_0 t Y r n u l f j ou: r I r p_h u n_0 t Y r T r '
  'i: r E t l_0 t_h j E: E s', result_str)
@@ -27,7 +27,7 @@ class TestTranscriber(unittest.TestCase):
         manager.set_g2p_word_separator('-')
         test_string = 'hlaupa í burtu í dag'
         transcribed = manager.transcribe(test_string)
-        result_str = tokens.extract_text(transcribed, word_separator='-')
+        result_str = tokens.extract_transcribed_text(transcribed, word_separator='-')
         self.assertEqual('l_0 9i: p a - i: - p Y r_0 t Y - i: - t a: G', result_str)
 
     def test_syllabification(self):
@@ -35,7 +35,7 @@ class TestTranscriber(unittest.TestCase):
         manager.set_g2p_syllab_symbol('.')
         test_string = 'hlaupa í burtu í dag'
         transcribed = manager.transcribe(test_string)
-        result_str = tokens.extract_text(transcribed)
+        result_str = tokens.extract_transcribed_text(transcribed)
         self.assertEqual('l_0 9i: . p a i: p Y r_0 . t Y i: t a: G', result_str)
 
     def test_custom_dict(self):
@@ -44,7 +44,7 @@ class TestTranscriber(unittest.TestCase):
         manager.set_g2p_custom_dict(custom_dict)
         test_string = 'þessi texti en engir aukvisar'
         transcribed = manager.transcribe(test_string)
-        result_str = tokens.extract_text(transcribed)
+        result_str = tokens.extract_transcribed_text(transcribed)
         self.assertEqual('T E s I t_h E x s t I E n 9 N k v I r 9i: k v I s a r', result_str)
 
     def test_longer_text(self):
