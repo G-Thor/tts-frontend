@@ -17,7 +17,7 @@ class TestNormalizer(unittest.TestCase):
         normalized = manager.normalize(input_text, split_sent=False)
         result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
         self.assertEqual('Snýst í suðaustan tíu til átján metrar á sekúndu og hlýnar með rigningu <sil> en norðaustanátt og '
-                         'snjókoma norðvestan til fyrri part dags <sentence>', result_str)
+                         'snjókoma norðvestan til fyrri part dags', result_str)
         self.assertEqual('NV-til', normalized[14].name)
 
     def test_normalize_denom(self):
@@ -68,7 +68,7 @@ class TestNormalizer(unittest.TestCase):
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
         print(result_str)
-        self.assertEqual('Eins og F T S E vísitalan segir A I D S', result_str)
+        self.assertEqual('Eins og F T S E vísitalan segir AIDS', result_str)
 
     def test_split_sentences(self):
         manager = Manager()
@@ -79,7 +79,7 @@ class TestNormalizer(unittest.TestCase):
                          'Jæja hópurinn <sil> '
                          'Ungir Píratar <sil> Ungir sósíalistar og Ungir jafnaðarmenn <sentence> '
                          'Svalt var á Austurvelli í dag en hiti '
-                         'í fundarmönnum <sentence>', result_str)
+                         'í fundarmönnum', result_str)
 
     def test_split_sentences_to_list(self):
         manager = Manager()
@@ -133,18 +133,24 @@ class TestNormalizer(unittest.TestCase):
         input_text = 'Blikar heppnir, KR-ingar óheppnir.'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
-        # TODO: fix space issue in normalizer
-        self.assertEqual('Blikar heppnir <sil> K R  <sil>ingar <sil> óheppnir <sentence>', result_str)
-        input_text = 'EFTA-ríkin'
-        normalized = manager.normalize(input_text)
-        result_str = tokens.extract_normalized_text(normalized)
-        # TODO: fix space issue in normalizer
-        self.assertEqual('E F T A  <sil>ríkin', result_str)
+        self.assertEqual('Blikar heppnir <sil> K R  <sil> ingar <sil> óheppnir', result_str)
         input_text = 'Evrópa (EFTA-ríkin)'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
         # TODO: fix space issue in normalizer
-        self.assertEqual('Evrópa <sil> E F T A <sil>ríkin <sentence>', result_str)
+        self.assertEqual('Evrópa <sil> EFTA <sil> ríkin', result_str)
+        # TODO: fix space issue in normalizer
+
+        input_text = 'EFTA-ríkin'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        # TODO: fix space issue in normalizer
+        self.assertEqual('EFTA  <sil> ríkin', result_str)
+        input_text = 'Evrópa (EFTA-ríkin)'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        # TODO: fix space issue in normalizer
+        self.assertEqual('Evrópa <sil> EFTA <sil> ríkin', result_str)
 
     def test_sport_results_time(self):
         manager = Manager()
