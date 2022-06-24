@@ -69,16 +69,16 @@ class TestTranscriber(unittest.TestCase):
         manager = Manager()
         test_string = self.get_parsed_html()
         transcribed = manager.transcribe(test_string, phrasing=True)
-        result_arr = manager.get_sentence_representation(transcribed, ignore_tags=False)
-        #for sent in result_arr:
-        #    print(sent)
+        result_arr = manager.get_transcribed_sentence_representation(transcribed, ignore_tags=False)
         self.assertEqual(len(result_arr), 3)
-        self.assertEqual(result_arr[2],
-                         'a n_0 t O n O v s c i s i n t I f r a m au: <sil> a: D <sil> E: f ei n s t a h k l i N k a r s E: m Y h p l I v D Y au: l a G s '
-                         'ai j Y t_h I l k au N k m E: D r ei n s t l Y s I n I <sil> T au: T r ou: a D I s t m E: D T ei: m t_h I l f I n i N k f I: r I r '
-                         's a m h ei J c I i: l i: v I n Y <sil> E n s k a <sil> s E n s O: v k_h ou: E r E N_0 k <sil> s I G r u n k Y n a r_0 s t ou h t I r '
-                         'h E: v Y r i s t l E n s k a D s c I l k r ei n i N k Y h Y G t_h a k s I n s Y m t_h I l f I n i N k Y f I: r I r '
-                         's a m h ei J c I i: l i: v I n Y au: E f t I r_0 f a r a n t I h au h t <sil>')
+        self.assertEqual('a n_0 t O n O v s c i s i n t I f r a m au: <sil> a: D <sil> E: f ei n s t a '
+ 'h k l i N k a r s E: m Y h p l I v D Y au: l a G s ai j Y t_h I l k au N k m '
+ 'E: D r ei n s t l Y s I n I  <sil> T au: T r ou: a D I s t m E: D T ei: m '
+ 't_h I l f I n i N k f I: r I r s a m h ei J c I i: l i: v I n Y <sil> E n s '
+ 'k a <sil> s E n s O: v k_h ou: E r E N_0 k <sil> s I G r u n k Y n a r_0 s t '
+ 'ou h t I r h E: v Y r i s t l E n s k a D s c I l k r ei n i N k Y h Y G t_h '
+ 'a k s I n s Y m t_h I l f I n i N k Y f I: r I r s a m h ei J c I i: l i: v '
+ 'I n Y au: E f t I r_0 f a r a n t I h au h t  <sil>', result_arr[2])
 
     def test_longer_text_4(self):
         manager = Manager()
@@ -125,15 +125,15 @@ class TestTranscriber(unittest.TestCase):
     def get_parsed_html(self):
         return 'Í kjölfarið sýndi hann fram á að það stuðli að heilbrigði ef einstaklingar geti fundið samhengi í ' \
                'tengslum við lífsatburði eða öðlast skilning á aðstæðum sínum. Hann taldi uppsprettu ' \
-               'heilbrigðis <lang xml:lang="en-GB"> salutogenesis </lang> vera að finna í mismunandi hæfni einstaklinga ' \
+               'heilbrigðis (e. salutogenesis) vera að finna í mismunandi hæfni einstaklinga ' \
                'til að stjórna viðbrögðum sínum við álagi. Antonovsky sýndi fram á að ef einstaklingar sem upplifðu ' \
                'álag sæju tilgang með reynslu sinni, þá þróaðist með þeim tilfinning fyrir samhengi í ' \
-               'lífinu <lang xml:lang="en-GB"> sense of coherence </lang> Sigrún Gunnarsdóttir hefur íslenskað ' \
+               'lífinu (e. sense of coherence) Sigrún Gunnarsdóttir hefur íslenskað ' \
                'skilgreiningu hugtaksins um tilfinningu fyrir samhengi í lífinu á eftirfarandi hátt: '
 
     def get_parsed_html_tmp(self):
-        return 'heilbrigðis <lang xml:lang="en-GB"> salutogenesis </lang> vera að finna í mismunandi hæfni einstaklinga ' \
-               'lífinu <lang xml:lang="en-GB"> sense of coherence </lang> Sigrún Gunnarsdóttir hefur íslenskað '
+        return 'heilbrigðis (e. salutogenesis) vera að finna í mismunandi hæfni einstaklinga ' \
+               'lífinu (e. sense of coherence) Sigrún Gunnarsdóttir hefur íslenskað '
 
     def get_problematic_html(self):
         return '<!DOCTYPE html><html>     <head>         <title>Prufuskjal fyrir talgervil</title>     </head>     ' \

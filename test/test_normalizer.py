@@ -19,6 +19,8 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual('Snýst í suðaustan tíu til átján metrar á sekúndu og hlýnar með rigningu <sil> en norðaustanátt og '
                          'snjókoma norðvestan til fyrri part dags <sentence>', result_str)
         self.assertEqual('NV-til', normalized[14].name)
+        for elem in normalized:
+            print(elem.to_json())
 
     def test_normalize_denom(self):
         manager = Manager()

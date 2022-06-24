@@ -69,8 +69,12 @@ class PhrasingManager:
                 tag_tok = TagToken(phrased_list[phrase_index], token.token_index)
                 phrased_token_list.append(tag_tok)
                 # if we have a 'pure' punctuation token, do nothing further, but if the tag-token was added
-                # in between tokens as a result of phrasing, add the normalized token to the list as well
-                if self.get_punct_index(token) < 0:
+                # in between tokens as a result of phrasing, remove the punctuation token from the normalized list and
+                # add the token to the list as well
+                for i, normalized in enumerate(token.normalized):
+                    if normalized.pos in ['.', ',', 'pg', 'pa', 'pl'] or token.name == '/':
+                        token.normalized.remove(normalized)
+                if len(token.normalized) > 0:
                     phrased_token_list.append(token)
                     phrase_index += 1
             elif not token.name:
@@ -79,27 +83,9 @@ class PhrasingManager:
                 phrased_token_list.append(token)
                 phrase_index -= 1
             else:
-                # check for 1 to n relation phrased vs. normalized
-                # e.g. 'fimm' vs. 'fimm fimm sjö <sil> einn tveir þrír fjórir'
-                normalized = token.name
-                norm_arr = normalized.split('<sil>')
-                if len(norm_arr) > 1:
-                    # we have a <sil> tag somewhere in the normalized name
-                    for str in norm_arr:
-                        norm_token = NormalizedToken(token.clean_token)
-                        norm_token.set_normalized(str)
-                        norm_token.set_index(token.token_index)
-                        norm_token.set_pos(token.pos)
-                        tag_tok = TagToken('<sil>', token.token_index)
-                        phrased_token_list.append(norm_token)
-                        phrased_token_list.append(tag_tok)
-                    # remove the last '<sil>' token
-                    phrased_token_list = phrased_token_list[:-1]
-                else:
-                    phrased_token_list.append(token)
-
-                phrase_index += len(normalized.split())
-                i += len(normalized.split())
+                phrased_token_list.append(token)
+                phrase_index += len(token.normalized) - 1
+                i += phrase_index
 
             phrase_index += 1
         return phrased_token_list
