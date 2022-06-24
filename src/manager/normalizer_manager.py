@@ -6,8 +6,8 @@ the normalizer module, as well as pos-tags delivered by the normalizer module.
 """
 import difflib
 
-from typing import Union, Tuple
-from .tokens import Token, CleanToken, NormalizedToken, TagToken, Normalized
+from typing import Tuple
+from .tokens import Normalized, TagToken
 from .tokens_manager import extract_sentences_by_tokens
 from .linked_tokens import LinkedTokens
 #production
