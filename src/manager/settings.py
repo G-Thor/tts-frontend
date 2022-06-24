@@ -48,7 +48,7 @@ POST_DICT = post_dict_lookup
 # module, except when they occur in tokens in valid dictionaries (abbreviations or pronunciation dictionaries)
 # Note that the following characters from the English alphabet are not included: c, q, w, z
 VALID_CHARACTERS = ['a', 'á', 'b', 'd', 'ð', 'e', 'é', 'f', 'g', 'h', 'i', 'í', 'j', 'k', 'l', 'm',
-                      'n', 'o', 'ó', 'p', 'r', 's', 't', 'u', 'ú', 'v', 'y', 'ý', 'þ', 'æ', 'ö', 'x']
+                      'n', 'o', 'ó', 'p', 'r', 's', 't', 'u', 'ú', 'v', 'y', 'ý', 'þ', 'æ', 'ö', 'x', 'c', 'q', 'w', 'z']
 
 # punctuation symbols not deleted or replaced in the text-cleaner
 PUNCTUATION = ['.',',',':','!','?', '/', '-', '<', '>', '%']

@@ -38,6 +38,14 @@ class TestTranscriber(unittest.TestCase):
         result_str = tokens.extract_transcribed_text(transcribed)
         self.assertEqual('l_0 9i: . p a i: p Y r_0 . t Y i: t a: G', result_str)
 
+    def test_english(self):
+        manager = Manager()
+        test_string = 'sense of coherence'
+        transcribed = manager.transcribe(test_string)
+        result_str = tokens.extract_transcribed_text(transcribed)
+        self.assertEqual('s E n s O: v k_h ou: E r E n s', result_str)
+
+
     def test_custom_dict(self):
         manager = Manager()
         custom_dict = self.get_custom_dict()
@@ -75,7 +83,7 @@ class TestTranscriber(unittest.TestCase):
  'h k l i N k a r s E: m Y h p l I v D Y au: l a G s ai j Y t_h I l k au N k m '
  'E: D r ei n s t l Y s I n I  <sil> T au: T r ou: a D I s t m E: D T ei: m '
  't_h I l f I n i N k f I: r I r s a m h ei J c I i: l i: v I n Y <sil> E n s '
- 'k a <sil> s E n s O: v k_h ou: E r E N_0 k <sil> s I G r u n k Y n a r_0 s t '
+ 'k a <sil> s E n s O: v k_h ou: E r E n s <sil> s I G r u n k Y n a r_0 s t '
  'ou h t I r h E: v Y r i s t l E n s k a D s c I l k r ei n i N k Y h Y G t_h '
  'a k s I n s Y m t_h I l f I n i N k Y f I: r I r s a m h ei J c I i: l i: v '
  'I n Y au: E f t I r_0 f a r a n t I h au h t  <sil>', result_arr[2])
