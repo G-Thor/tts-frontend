@@ -65,12 +65,13 @@ def extract_normalized_text(token_list: list, ignore_tags=True, word_separator='
             continue
         if isinstance(elem, TagToken):
             token_strings.append(elem.name)
+            #token_strings.append('<sil>')
             continue
         if not elem.normalized:
             continue
         for norm in elem.normalized:
             # TODO: check normalizer: why does it return punctuation?
-            if norm.norm_str not in [',', '.', '(', ')', '/']:
+            if norm.norm_str not in [',', '.', ':', '?', '(', ')', '/', '"']:
                 token_strings.append(norm.norm_str)
     if word_separator:
         return f' {word_separator} '.join(token_strings)
