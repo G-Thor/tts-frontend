@@ -22,10 +22,10 @@ SSML_LANG_END = '</lang>'
 class CleanerManager:
     """Connects the pipeline to the text-cleaner module and manages input and output"""
 
-    def __init__(self, repl_dict: dict, post_lookup_dict: dict, lexicon: list, alphabet: list):
+    def __init__(self, repl_dict: dict, post_lookup_dict: dict, lexicon: list, alphabet: list, html_mapping: dict):
         self.cleaner = TextCleaner(replacement_dict=repl_dict, post_dict=post_lookup_dict, preserve_strings=lexicon,
                                    punct_set=PUNCTUATION, alphabet=alphabet)
-        self.html_cleaner = HtmlCleaner()
+        self.html_cleaner = HtmlCleaner(tag_replacements=html_mapping)
         self.next_token_index = 0
 
     def clean_text(self, text: str) -> list:

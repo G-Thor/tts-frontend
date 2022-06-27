@@ -37,7 +37,8 @@ class Manager:
         self.resources = ManagerResources()
         self.tokenizer = Tokenizer(self.get_abbreviations(), self.get_nonending_abbreviations())
         cleaner_lexicon = self.get_default_cleaner_lexicon()
-        self.cleaner = CleanerManager(self.get_replacement_dict(), self.get_post_lookup_dict(), cleaner_lexicon, self.get_alphabet())
+        self.cleaner = CleanerManager(self.get_replacement_dict(), self.get_post_lookup_dict(), cleaner_lexicon,
+                                      self.get_alphabet(), self.get_html_mapping())
         self.normalizer = NormalizerManager()
         self.spellchecker = SpellCheckerManager()
         self.phrasing = PhrasingManager()

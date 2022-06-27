@@ -219,6 +219,13 @@ class TestNormalizer(unittest.TestCase):
             norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
             print(norm_text)
 
+    def test_normalize_table(self):
+        manager = Manager()
+        input_text = self.get_table_text()
+        normalized = manager.normalize(input_text, split_sent=True)
+        norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        print(norm_text)
+
     def get_very_long_text(self):
         with open('../Akranes_10.txt') as f:
             return f.read()
@@ -319,4 +326,12 @@ class TestNormalizer(unittest.TestCase):
                         'Server sem keyrir nýjasta LTS version af Ubuntu Server (20.04.3 LTS)'
             ]
         return test_map
+
+    def get_table_text(self):
+        return 'Prufuskjal fyrir talgervil. Leiðir til að lækka (-) eða auka (+) kostnað heimila. ' \
+               'Það er ódýrara að búa í litlu húsnæði en stóru, eiga húsnæði frekar en að leigja, búa í úthverfi ' \
+               'frekar en í miðbænum o.s.frv. Húsnæði. -. KOSTNAÐUR. +. Minna húsnæði. Stærra húsnæði. Eiga íbúð. ' \
+               'Leigja íbúð. Búa í úthverfi. Búa í miðbænum. Samgöngur. -. KOSTNAÐUR. +. Strætó / hjól. Eigin bíll. ' \
+               'Bílakaup með sparifé. Með bílaláni. Búa í miðbænum. Búa í úthverfi. Matur og hreinlætisvörur. -. ' \
+               'KOSTNAÐUR. +. Minna. Meira. Góð nýting. Sóun. Tómstundir. -. KOSTNAÐUR. +. Minna. Meira.'
 
