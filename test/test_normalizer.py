@@ -46,6 +46,40 @@ class TestNormalizer(unittest.TestCase):
         #TODO: fix in normalizer
         #self.assertEqual('fimm hundruð kílóvattstundir', result_str)
 
+    def test_decimals(self):
+        manager = Manager()
+        input_text = '20,86'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('tuttugu komma áttatíu og sex', result_str)
+        input_text = '143,20'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('hundrað fjörutíu og þrjú komma tuttugu', result_str)
+        input_text = '176,64'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('hundrað sjötíu og sex komma sextíu og fjögur', result_str)
+        input_text = '1,316'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('eitt komma þrjú eitt sex', result_str)
+        input_text = '1,04'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('eitt komma núll fjögur', result_str)
+
+    def test_normalize_negative_numbers(self):
+        manager = Manager()
+        input_text = '-2'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('mínus tvö', result_str)
+        input_text = '-3,5%'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('mínus þrjú komma fimm prósent', result_str)
+
     def test_normalize_foreign(self):
         manager = Manager()
         input_text = 'the wall'
@@ -101,17 +135,6 @@ class TestNormalizer(unittest.TestCase):
             print(sent)
         self.assertEqual(10, len(result))
 
-    def test_split_sentences_to_list_3(self):
-        #TODO: fix 'kr. 156.459,-' (see Akranes_10.txt')
-        manager = Manager()
-        input_text = self.get_very_long_text()
-        normalized = manager.normalize(input_text, split_sent=True)
-        result = manager.get_sentence_representation(normalized, ignore_tags=False)
-        print("no. of sentences: " + str(len(result)))
-        for sent in result:
-            print(sent)
-        #self.assertEqual(10, len(result))
-
     def test_normalize_html(self):
         #TODO: fix 'kr. 156.459,-' (see Akranes_10.txt')
         manager = Manager()
@@ -140,7 +163,7 @@ class TestNormalizer(unittest.TestCase):
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
         # TODO: fix space issue in normalizer
-        self.assertEqual('Evrópa <sil> EFTA <sil> ríkin <sentence>', result_str)
+        self.assertEqual('Evrópa <sil> EFTA <sil> ríkin <sil> <sentence>', result_str)
         # TODO: fix space issue in normalizer
 
         input_text = 'EFTA-ríkin'
@@ -152,7 +175,7 @@ class TestNormalizer(unittest.TestCase):
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
         # TODO: fix space issue in normalizer
-        self.assertEqual('Evrópa <sil> EFTA <sil> ríkin <sentence>', result_str)
+        self.assertEqual('Evrópa <sil> EFTA <sil> ríkin <sil> <sentence>', result_str)
 
     def test_sport_results_time(self):
         manager = Manager()
@@ -203,6 +226,25 @@ class TestNormalizer(unittest.TestCase):
                     'tvö þúsund og tíu <sil> m b l punktur i s <sil> Kristinn Magnússon <sentence>',
                 result_str)
 
+    def test_dates(self):
+        manager = Manager()
+        input_text = '27. Mar 2020'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('tuttugasta og sjöunda mars tvö þúsund og tuttugu', result_str)
+        input_text = '27/10/20'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('tuttugasta og sjöunda tíunda tuttugu', result_str)
+        input_text = '27.3. 20'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('tuttugasta og sjöunda  þriðja tuttugu', result_str)
+        input_text = "27.3.'20"
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('tuttugasta og sjöunda  þriðja  tuttugu', result_str)
+
     def test_normalize_div(self):
         manager = Manager()
         test_map = self.get_test_map()
@@ -240,10 +282,10 @@ class TestNormalizer(unittest.TestCase):
         # input_file = '../Akranes_10.txt'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_2.html'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_3.html'
-        input_file = '../HBS-2022-06-30/FST_Toflu_test_4.html'
+        # input_file = '../HBS-2022-06-30/FST_Toflu_test_4.html'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_5.html'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_6.html'
-        # input_file = '../HBS-2022-06-30/FST_Toflu_test_7.html'
+        input_file = '../HBS-2022-06-30/FST_Toflu_test_7.html'
         # input_file = '../HBS-2022-06-30/Textatalgervilsprofun_ur_bok_Fjarmal.html'
         with open(input_file) as f:
             return f.read()

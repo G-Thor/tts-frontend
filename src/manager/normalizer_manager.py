@@ -180,6 +180,7 @@ class NormalizerManager:
                             norm_word = current_norm.processed
                             normalized_arr = self.extend_norm_arr(current_norm, normalized_arr, norm_word)
                             if current_norm.next:
+                                current_norm.visited = True
                                 current_norm = current_norm.next
                         else:
                             break
@@ -193,6 +194,8 @@ class NormalizerManager:
                 elif tokenized_token.startswith(current_prenorm.token):
                     normalized_arr = []
                     for j in range(len(tok.tokenized)):
+                        if current_norm.visited:
+                            break
                         # did the pre-norm process split up the token in tok.tokenized?
                         no_prenorm_tokens = len(current_prenorm.processed.split())
                         if no_prenorm_tokens > 1:
@@ -200,7 +203,7 @@ class NormalizerManager:
                             original_tok_rest = ''.join(original_arr[j:])
                             pre_norm_arr = current_prenorm.processed.split()
                             pre_norm_str = ''.join(pre_norm_arr)
-                            if original_tok_rest.startswith(pre_norm_str):
+                            if original_tok_rest.startswith(pre_norm_str) or current_prenorm.processed.startswith(current_norm.token):
                                 for k in range(no_prenorm_tokens):
                                     norm_word = current_norm.processed.strip()
                                     current_norm.visited = True

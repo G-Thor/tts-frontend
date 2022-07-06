@@ -137,7 +137,7 @@ class Tokenizer:
         """ If last token ended with a dot we look at if the current token starts with an uppercase character and if
         last token is non sentence ending abbreviation. Generally, if next token starts with an uppercase letter
         we have an EOS unless the last token (the dot - token) is a one letter uppercase abbreviation or a defined
-        non sentence ending abbreviation (like 'Hr.' which should always be followed by a name)
+        non sentence ending abbreviation (like 'Hr.' which should always be followed by a name).
         """
         if not current:
             return False
@@ -145,7 +145,11 @@ class Tokenizer:
         if last == '.':
             return True
         if current[0].isupper() or current[0] == '"':
-            return not self.is_uppercase_abbr(last) and last.lower() not in self.abbreviations_non_ending
+            uppercase_abbr = self.is_uppercase_abbr(last)
+            abbr_non_ending = last.lower() in self.abbreviations_non_ending
+            current_is_abbr = self.is_abbreviation(current)
+            #last_is_ordinal = re.fullmatch('\d+\.') - do we need to limit current_abbr to preceding ordinal?
+            return not uppercase_abbr and not abbr_non_ending and not current_is_abbr
         return False
 
     @staticmethod
@@ -247,7 +251,9 @@ class Tokenizer:
         return re.match('(' + UPPER_CASE + '\\.)+', token) and not self.is_abbreviation(token)
 
     def is_abbreviation(self, token: str) -> bool:
-        if token.lower() in self.abbreviations:
+        # is adding the dot for abbr-testing too general?
+        # added to fetch month abbreviations erroneously written with an uppercase and without a dot
+        if token.lower() in self.abbreviations or token.lower() + '.' in self.abbreviations:
             return True
         return token.lower() in self.abbreviations_non_ending
 
