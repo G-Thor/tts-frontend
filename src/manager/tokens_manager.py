@@ -157,6 +157,41 @@ def extract_sentences_by_tokens(token_list: list, ignore_tags=True, word_separat
 
     return sentences
 
+
+def extract_sentences_by_normalized(token_list: list, ignore_tags=True, word_separator='') -> list:
+    """Return a list of sentences as represented in token_list. Even if ignore_tags is set to
+    True we check for sentence tags to split the list into sentences."""
+    sentences = []
+    sent_tokens = []
+    for elem in token_list:
+        if isinstance(elem, TagToken) and elem.name == SENTENCE_TAG:
+            if word_separator:
+                sent = f' {word_separator} '.join(sent_tokens)
+            else:
+                sent = ' '.join(sent_tokens)
+            sentences.append(sent)
+            sent_tokens = []
+        elif isinstance(elem, TagToken) and ignore_tags:
+            continue
+        elif isinstance(elem, TagToken):
+            sent_tokens.append(elem.name)
+        elif not elem.normalized:
+            continue
+        else:
+            for norm in elem.normalized:
+                if norm.norm_str not in [',', '.', ':', '?', '(', ')', '/', '"']:
+                    sent_tokens.append(norm.norm_str)
+
+    if sent_tokens:
+        if word_separator:
+            sent = f' {word_separator} '.join(sent_tokens)
+        else:
+            sent = ' '.join(sent_tokens)
+        sentences.append(sent)
+
+    return sentences
+
+
 def extract_sentences_by_transcribed(token_list: list, ignore_tags=True, word_separator='') -> list:
     """Return a list of sentences as represented in token_list. Even if ignore_tags is set to
     True we check for sentence tags to split the list into sentences."""
@@ -281,7 +316,9 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
         elif token_list[tokenized_counter].startswith('<'):
             tag_token = TagToken(token_list[tokenized_counter], clean_counter)
             aligned_list.append(tag_token)
-            set_step_back_counter = True
+            # don't we have a 'dot' or some equivalent token in the clean-token-list? or do we need some kind of a flag?
+            if token.name != '.':
+                set_step_back_counter = True
         elif not token.clean:
             # clean token is empty, meaning original token was deleted during cleaning
             # repeat comparison with tokenized list in the next round

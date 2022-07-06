@@ -18,10 +18,11 @@ class PhrasingManager:
     def get_punct_index(tok: Token):
         if isinstance(tok, TagToken):
             return False
+        ind_arr = []
         for i, normalized in enumerate(tok.normalized):
             if normalized.pos in ['.', ',', 'pg', 'pa', 'pl'] or tok.name == '/':
-                return i
-        return -1
+                ind_arr.append(i)
+        return ind_arr
 
     def phrase_text(self, tagged_text: str):
         MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -100,19 +101,25 @@ class PhrasingManager:
                 phrased_token_list.append(token)
                 continue
             punct_index = self.get_punct_index(token)
-            if punct_index >= 0:
+            if punct_index:
+                token_added = False
                 tag_tok = TagToken(SIL_TAG, token.token_index)
                 # most often the punctuation will be at the end of a token, it can however be an opening
                 # parenthesis, meaning that the tag token needs to be added before the core token
                 # if length of token.normalized is == 1, we only add a tag token.
-                if len(token.normalized) > 1 and punct_index == 0:
-                    phrased_token_list.append(tag_tok)
-                    phrased_token_list.append(token)
-                elif len(token.normalized) > 1 and punct_index > 0:
-                    phrased_token_list.append(token)
-                    phrased_token_list.append(tag_tok)
-                else:
-                    phrased_token_list.append(tag_tok)
+                # For tokens in parenthesis we can have two punctuation marks within one token, which we need to
+                # replace with a SIL-tag
+                for ind in punct_index:
+                    if len(token.normalized) > 1 and ind == 0:
+                        phrased_token_list.append(tag_tok)
+                        phrased_token_list.append(token)
+                        token_added = True
+                    elif len(token.normalized) > 1 and ind > 0:
+                        if not token_added:
+                            phrased_token_list.append(token)
+                        phrased_token_list.append(tag_tok)
+                    else:
+                        phrased_token_list.append(tag_tok)
             else:
                 phrased_token_list.append(token)
 

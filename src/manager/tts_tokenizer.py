@@ -141,6 +141,9 @@ class Tokenizer:
         """
         if not current:
             return False
+        # if we have an isolated dot, assume we want to have a sentence split at that place
+        if last == '.':
+            return True
         if current[0].isupper() or current[0] == '"':
             return not self.is_uppercase_abbr(last) and last.lower() not in self.abbreviations_non_ending
         return False

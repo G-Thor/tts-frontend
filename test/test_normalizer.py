@@ -55,7 +55,7 @@ class TestNormalizer(unittest.TestCase):
         input_text = 'certainly cawity'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
-        self.assertEqual('certainly kavity', result_str)
+        self.assertEqual('certainly cawity', result_str)
 
     def test_normalize_numbers(self):
         manager = Manager()
@@ -215,7 +215,7 @@ class TestNormalizer(unittest.TestCase):
         manager = Manager()
         test_list = self.get_hbs_test_list()
         for elem in test_list:
-            normalized = manager.normalize(elem, split_sent=True)
+            normalized = manager.normalize(elem, html=True, split_sent=True)
             norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
             print(norm_text)
 
@@ -226,8 +226,26 @@ class TestNormalizer(unittest.TestCase):
         norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
         print(norm_text)
 
+    def test_texts_from_file(self):
+        manager = Manager()
+        input_text = self.get_very_long_text()
+        normalized = manager.normalize(input_text, html=True, split_sent=True)
+        norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        print(norm_text)
+        norm_sent = tokens.extract_sentences_by_normalized(normalized, ignore_tags=False)
+        for sent in norm_sent:
+            print(sent)
+
     def get_very_long_text(self):
-        with open('../Akranes_10.txt') as f:
+        # input_file = '../Akranes_10.txt'
+        # input_file = '../HBS-2022-06-30/FST_Toflu_test_2.html'
+        # input_file = '../HBS-2022-06-30/FST_Toflu_test_3.html'
+        input_file = '../HBS-2022-06-30/FST_Toflu_test_4.html'
+        # input_file = '../HBS-2022-06-30/FST_Toflu_test_5.html'
+        # input_file = '../HBS-2022-06-30/FST_Toflu_test_6.html'
+        # input_file = '../HBS-2022-06-30/FST_Toflu_test_7.html'
+        # input_file = '../HBS-2022-06-30/Textatalgervilsprofun_ur_bok_Fjarmal.html'
+        with open(input_file) as f:
             return f.read()
 
     def get_long_text1(self):

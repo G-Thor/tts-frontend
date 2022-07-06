@@ -11,11 +11,11 @@ from .tokens import Normalized, TagToken
 from .tokens_manager import extract_sentences_by_tokens
 from .linked_tokens import LinkedTokens
 #production
-from regina_normalizer import abbr_functions
-from regina_normalizer import number_functions
+#from regina_normalizer import abbr_functions
+#from regina_normalizer import number_functions
 #local testing
-#from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import abbr_functions
-#from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import number_functions
+from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import abbr_functions
+from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import number_functions
 
 
 class NormalizerManager:
@@ -29,6 +29,8 @@ class NormalizerManager:
         final_normalized = []
         text_arr = extract_sentences_by_tokens(token_list)
         for sent in text_arr:
+            if not sent:
+                continue
             pre, final = self.normalize(sent)
             pre_normalized.extend(pre)
             final_normalized.extend(final)
