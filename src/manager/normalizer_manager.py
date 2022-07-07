@@ -11,11 +11,11 @@ from .tokens import Normalized, TagToken
 from .tokens_manager import extract_sentences
 from .linked_tokens import LinkedTokens
 #production
-#from regina_normalizer import abbr_functions
-#from regina_normalizer import number_functions
+from regina_normalizer import abbr_functions
+from regina_normalizer import number_functions
 #local testing
-from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import abbr_functions
-from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import number_functions
+#from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import abbr_functions
+#from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import number_functions
 
 
 class NormalizerManager:
