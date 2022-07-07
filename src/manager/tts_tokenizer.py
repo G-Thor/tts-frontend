@@ -148,7 +148,7 @@ class Tokenizer:
             uppercase_abbr = self.is_uppercase_abbr(last)
             abbr_non_ending = last.lower() in self.abbreviations_non_ending
             current_is_abbr = self.is_abbreviation(current)
-            #last_is_ordinal = re.fullmatch('\d+\.') - do we need to limit current_abbr to preceding ordinal?
+            #last_is_ordinal = re.fullmatch('\d+\.') - do we need to limit current_abbr to preceeding ordinal?
             return not uppercase_abbr and not abbr_non_ending and not current_is_abbr
         return False
 
@@ -168,16 +168,19 @@ class Tokenizer:
         # the token contains a non-alphabetic character, just return the token as is
         if not self.should_process(token):
             # we need to insert spaces after and before enclosing parenthesis regardless
-            # of the return value of "should process"
-            return re.sub('(\\()(.+)(\\))', '\\g<1> \\g<2> \\g<3>', token)
+            # of the return value of "should process", also if a token ends with a comma, insert space
+            token = re.sub('(\\()(.+)(\\))', '\\g<1> \\g<2> \\g<3>', token)
+            if token.endswith(','):
+                token = token[:-1] + ' ,'
+            return token
 
         # For all kinds of punctuation we need to insert spaces at the correct positions
         # Patterns:
         processed_token = token
         # insert space after these symbols: '(', '[', '{', '-', '_'
-        insert_space_after_anywhere = '([(\\[{\\-/_])'
+        insert_space_after_anywhere = '([(\\[{\\-/_+])'
         # insert space before these symbols: ')', '[', '}' '-', '_'  TODO: shouldn't '[' be ']' ?
-        insert_space_before_anywhere = '([)\\]}\\-/_%])'
+        insert_space_before_anywhere = '([)\\]}\\-/_%+])'
         # insert space after these symbols at the beginning of a token: '"',
         insert_space_after_if_beginning = '^(\")(.+)'
         # insert space before these symbols at the end of a token: '"', ':', ',', '.', '!', '?'
@@ -213,9 +216,9 @@ class Tokenizer:
         if re.fullmatch('(\\d+[.,:]\\d+)+[,.]?', token):
             return False
         # telephone number or 'kennitala', don't split on hyphen
-        if re.fullmatch('\\d{3}-\\d{4}', token):
+        if re.fullmatch('\\d{3}-\\d{4}[,.?:]?', token):
             return False
-        if re.fullmatch('\\d{6}-\\d{4}', token):
+        if re.fullmatch('\\d{6}-\\d{4}[,.?:]?', token):
             return False
         # don't split on hyphen if we have a digits pattern with more than one hyphen
         if re.fullmatch('(\\d+-){2,}\\d+', token):

@@ -80,9 +80,19 @@ class G2PManager:
             else:
                 transcribed_arr = []
                 if token.normalized:
-                    for norm in token.normalized:
-                        transcribed = self.g2p.transcribe(norm.norm_str.lower().strip(), icelandic=is_icelandic)
-                        transcribed_arr.append(transcribed)
+                    for elem in token.normalized:
+                        if elem.pos == 'TAG':
+                            # tag tokens like '<sil>' that can be enclosed in a normalized token, should be kept
+                            # but not transcribed (where they would cause an error)
+                            transcribed_arr.append(elem.norm_str.strip())
+                        else:
+                            norm_arr = elem.norm_str.split()
+                            for word in norm_arr:
+                                if word.startswith('<'):
+                                    transcribed = word.strip()
+                                else:
+                                    transcribed = self.g2p.transcribe(word.lower().strip(), icelandic=is_icelandic)
+                                transcribed_arr.append(transcribed.strip())
                 token.set_transcribed(transcribed_arr)
                 transcribed_list.append(token)
 

@@ -8,7 +8,7 @@ def format_telephonenumbers(text: str) -> str:
     """To prevent align problems at later stages, already here convert numbers in the format
     \d\d\d \d\d\d\d to a format with a hyphen, e.g. 557 1234 -> 557-1234
     Otherwise the normalizer will perform this change, causing later alignment processes to break."""
-    telephone_formatted = re.sub(r'(\d{3}) (\d{4})','\g<1>-\g<2>', text)
+    telephone_formatted = re.sub(r'(\d{3}) (\d{4}[,.?:]?)','\g<1>-\g<2>', text)
     return telephone_formatted
 
 
@@ -91,7 +91,8 @@ def extract_transcribed_text(token_list: list, ignore_tags=True, word_separator=
         if not elem.transcribed:
             continue
         for transcr in elem.transcribed:
-            token_strings.append(transcr)
+            if transcr:
+                token_strings.append(transcr)
     if word_separator:
         return f' {word_separator} '.join(token_strings)
     else:

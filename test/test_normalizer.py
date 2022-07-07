@@ -245,6 +245,15 @@ class TestNormalizer(unittest.TestCase):
         result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('tuttugasta og sjöunda  þriðja  tuttugu', result_str)
 
+    def test_corrupt_input(self):
+        manager = Manager()
+        input_text = 'Rekstrarfélag tekur þá 1.012.500 krónur í umsjónarlaun (meðaleign * 0,75%) = ((120 m.kr.+150 m.kr.)/2) * 0,75%.'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('Rekstrarfélag tekur þá ein milljón tólf þúsund og fimm hundruð krónur í umsjónarlaun '
+                         'meðaleign núll komma sjötíu og fimm prósent jafnt og hundrað og tuttugu milljónir króna plús '
+                         'hundrað og fimmtíu milljónir króna tvö milljónir króna tvö núll komma sjötíu og fimm prósent', result_str)
+
     def test_normalize_div(self):
         manager = Manager()
         test_map = self.get_test_map()
@@ -268,7 +277,7 @@ class TestNormalizer(unittest.TestCase):
         norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
         print(norm_text)
 
-    def test_texts_from_file(self):
+    def test_texts_from_html_file(self):
         manager = Manager()
         input_text = self.get_very_long_text()
         normalized = manager.normalize(input_text, html=True, split_sent=True)
@@ -278,15 +287,30 @@ class TestNormalizer(unittest.TestCase):
         for sent in norm_sent:
             print(sent)
 
-    def get_very_long_text(self):
+    def test_texts_from_file(self):
+        manager = Manager()
+        input_text = self.get_very_long_text()
+        normalized = manager.normalize(input_text, split_sent=True)
+        norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        print(norm_text)
+        norm_sent = tokens.extract_sentences_by_normalized(normalized, ignore_tags=False)
+        for sent in norm_sent:
+            print(sent)
+
+    def get_very_long_html_text(self):
         # input_file = '../Akranes_10.txt'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_2.html'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_3.html'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_4.html'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_5.html'
-        input_file = '../HBS-2022-06-30/FST_Toflu_test_6.html'
+        # input_file = '../HBS-2022-06-30/FST_Toflu_test_6.html'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_7.html'
-        #input_file = '../HBS-2022-06-30/Textatalgervilsprofun_ur_bok_Fjarmal.html'
+        input_file = '../HBS-2022-06-30/Textatalgervilsprofun_ur_bok_Fjarmal.html'
+        with open(input_file) as f:
+            return f.read()
+
+    def get_very_long_text(self):
+        input_file = '../Akranes_10.txt'
         with open(input_file) as f:
             return f.read()
 

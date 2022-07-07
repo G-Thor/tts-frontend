@@ -70,12 +70,36 @@ class Token:
         """Add a list of normalized objects generated from base token."""
         self.transcribed = transcribed
 
+    def update_spellchecked(self, spellchecked_tokens: list) -> int:
+        """Compare the first n tokens in the spellchecked list to all n normalized
+        tokens in this object. Return n."""
+        counter = -1
+        for norm in self.normalized:
+            norm_arr = norm.norm_str.split()
+            if len(spellchecked_tokens) < len(norm_arr):
+                # Something is not right here, we skip the updating and return -1 to tell the caller that
+                # the update was not successful. No need for an error though, we will go on without spellchecking
+                return -1
+            for i, elem in enumerate(norm_arr):
+                # spellchecking is performed on a text as extracted by "extract_normalized_text" which does not
+                # include the following chars
+                # TODO: define centrally, ensure those chars are not included in normalized text
+                if elem in [',', '.', ':', '?', '(', ')', '/', '"']:
+                    continue
+                counter += 1
+                if spellchecked_tokens[counter] != elem:
+                    norm_arr[i] = spellchecked_tokens[counter]
+            norm.norm_str = ' '.join(norm_arr)
+
+        return counter + 1
+
 
 class Normalized:
 
     def __init__(self, normalized: str, pos: str):
         self.norm_str = normalized
         self.pos = pos
+        self.is_spellcorrected = False
 
     def __repr__(self):
         return f"{self.norm_str}, {self.pos}"
