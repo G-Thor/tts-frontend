@@ -90,29 +90,69 @@ class NormalizerManager:
         diff = difflib.ndiff(sent_arr, prenorm_arr)
         # a token from sent_arr not occurring in the prenorm_arr,
         # store while processing the same/near positions in prenorm_arr
-        current_key = ''
+        current_keys = []
         # a token from prenorm_arr not occurring in the sent_arr,
         # store while processing the same/near positions in sent_arr
-        current_value = ''
+        current_values = []
 
         for elem in diff:
             if elem[0] == ' ':
-                if current_key and current_value:
+                if current_keys and current_values:
                     # add the orignal (key) - prenorm (value) tuple to the results
-                    norm_tuples.append((current_key.strip(), current_value.strip()))
-                    current_key = ''
-                    current_value = ''
-                norm_tuples.append((elem[2:], elem[2:]))
+                    norm_tuples.extend(self.extract_tuples(current_keys, current_values))
+                    current_keys = []
+                    current_values = []
+                norm_tuples.append((elem[2:].strip(), elem[2:].strip()))
             elif elem[0] == '-':
                 # elem in list1 but not in list2
-                current_key += ' ' + str(elem[2:])
+                current_keys.append(str(elem[2:]))
             elif elem[0] == '+':
                 # elem in list2 but not in list1
-                current_value += ' ' + str(elem[2:])
-        if current_key and current_value:
-            norm_tuples.append((current_key.strip(), current_value.strip()))
+                current_values.append(str(elem[2:]))
+        if current_keys and current_values:
+            norm_tuples.extend(self.extract_tuples(current_keys, current_values))
 
         return norm_tuples
+
+    def extract_tuples(self, keys, values):
+        """Extract tuples from keys and values. Most of the time we will only have one element in the
+        keys-array, and will then simply put a joined string from the values array as the second tuple
+        element, regardless of the size of the values array. If the keys array contains more than one
+        element, we first check if both arrays are equally long and we thus have a one on one mapping,
+        if not, we have to use some heuristics to attach the prenormalized values to the original keys,
+        namely to check if the first letters of keys/values match, indicating an expanded abbreviation."""
+        tup_list = []
+        if len(keys) == 1:
+            tup_list.append((keys[0].strip(), ' '.join(values).strip()))
+        elif len(keys) == len(values):
+            zipped = zip(keys, values)
+            for elem in zipped:
+                tup_list.append((elem[0].strip(), elem[1].strip()))
+        else:
+            value_ind = 0
+            current_val = values[value_ind]
+            for elem in keys:
+                matching = True
+                val = ''
+                elem_rest = elem
+                while matching:
+                    if elem_rest[0] == current_val[0]:
+                        val += ' ' + current_val
+                        value_ind += 1
+                        if value_ind < len(values):
+                            current_val = values[value_ind]
+                        else:
+                            break
+                        elem_rest = elem_rest[1:]
+                    elif elem_rest.startswith('.'):
+                        # the dot will have been deleted if the prenorm expanded an abbreviation
+                        # so check for a match of the next char
+                        elem_rest = elem_rest[1:]
+                    else:
+                        matching = False
+                tup_list.append((elem.strip(), val.strip()))
+
+        return tup_list
 
     def align_normalized(self, token_list, pre_normalized, final_normalized):
         """Use all three input lists to enrich the tokens in token_list with normalized representations
