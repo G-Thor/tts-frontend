@@ -1,5 +1,5 @@
 import unittest
-
+import pprint
 from src.manager.textprocessing_manager import Manager
 
 
@@ -21,3 +21,12 @@ class TestManager(unittest.TestCase):
         processed = manager.transcribe(input_text)
         result = manager.get_transcribed_sentence_representation(processed)
         self.assertEqual(2, len(result))
+
+    def test_json_repr(self):
+        manager = Manager()
+        input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu'
+        processed = manager.transcribe(input_text)
+        result = manager.get_json_representation(processed)
+        for elem in result:
+            pprint.pprint(elem)
+        self.assertEqual(11, len(result))

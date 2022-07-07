@@ -179,6 +179,14 @@ class Manager:
     #######################################################################################################
 
     @staticmethod
+    def get_json_representation(token_list: list) -> list:
+        json_repr = []
+        for token in token_list:
+            json_repr.append(token.to_json())
+
+        return json_repr
+
+    @staticmethod
     def get_string_representation_original(token_list: list, ignore_tags=True, word_separator='') -> str:
         """Extract original token names from the tokens in token_list.
         :param token_list: the token list to turn into string
