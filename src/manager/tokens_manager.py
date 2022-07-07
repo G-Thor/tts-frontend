@@ -42,7 +42,21 @@ def extract_text(token_list: list, ignore_tags=True, word_separator='') -> str:
         return ' '.join(token_strings)
 
 
-def extract_clean(token_list: list, ignore_tags=True, word_separator='') -> str:
+def extract_tokenized_text(token_list: list, ignore_tags=True, word_separator='') -> str:
+    token_strings = []
+    for elem in token_list:
+        if isinstance(elem, TagToken) and ignore_tags:
+            continue
+        if not elem.tokenized:
+            continue
+        token_strings.append(' '.join(elem.tokenized))
+    if word_separator:
+        return f' {word_separator} '.join(token_strings)
+    else:
+        return ' '.join(token_strings)
+
+
+def extract_clean_text(token_list: list, ignore_tags=True, word_separator='') -> str:
     token_strings = []
     for elem in token_list:
         if isinstance(elem, TagToken) and ignore_tags:
@@ -100,36 +114,6 @@ def extract_transcribed_text(token_list: list, ignore_tags=True, word_separator=
 
 
 def extract_sentences(token_list: list, ignore_tags=True, word_separator='') -> list:
-    """Return a list of sentences as represented in token_list. Even if ignore_tags is set to
-    True we check for sentence tags to split the list into sentences."""
-    sentences = []
-    sent_tokens = []
-    for elem in token_list:
-        if isinstance(elem, TagToken) and elem.name == SENTENCE_TAG:
-            if word_separator:
-                sent = f' {word_separator} '.join(sent_tokens)
-            else:
-                sent = ' '.join(sent_tokens)
-            sentences.append(sent)
-            sent_tokens = []
-        elif isinstance(elem, TagToken) and ignore_tags:
-            continue
-        elif not elem.name:
-            continue
-        else:
-            sent_tokens.append(elem.name)
-
-    if sent_tokens:
-        if word_separator:
-            sent = f' {word_separator} '.join(sent_tokens)
-        else:
-            sent = ' '.join(sent_tokens)
-        sentences.append(sent)
-
-    return sentences
-
-
-def extract_sentences_by_tokens(token_list: list, ignore_tags=True, word_separator='') -> list:
     """Return a list of sentences as represented in token_list. Even if ignore_tags is set to
     True we check for sentence tags to split the list into sentences."""
     sentences = []
@@ -254,7 +238,7 @@ def extract_tagged_text(token_list: list, ignore_tags=True) -> str:
     return ' '.join(token_strings).strip()
 
 
-def extract_tokenized_text(sentences: list, sent_split=False) -> str:
+def extract_tokenized_string(sentences: list, sent_split=False) -> str:
     """
     Extract the string from the list of sentences: [[],[], ..., []]
     :param sentences: list of strings
@@ -266,7 +250,7 @@ def extract_tokenized_text(sentences: list, sent_split=False) -> str:
             # replace full stop with sentence-tag
             if sent.endswith('.'):
                 sent = sent[:-1]
-            tokenized_text += ' ' + sent + ' ' +SENTENCE_TAG
+            tokenized_text += ' ' + sent + ' ' + SENTENCE_TAG
         else:
             tokenized_text += ' ' + sent
 
@@ -283,8 +267,8 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
     :param tokenized: a tokenized version of the tokenList as a list of sentences, tokens separated by a space
     :return a list of cleanTokens, possibly a longer one than the original"""
 
-    clean_str = extract_clean(clean_token_list)
-    tokenized_string = extract_tokenized_text(tokenized, sent_split=split_sent)
+    clean_str = extract_clean_text(clean_token_list)
+    tokenized_string = extract_tokenized_string(tokenized, sent_split=split_sent)
     # make sure we are merging token lists created from the same string
     # remove white spaces and sentence tags, since the tokenizer might have added spaces and the tokenized
     # string might already containe sentence tags

@@ -8,7 +8,7 @@ import difflib
 
 from typing import Tuple
 from .tokens import Normalized, TagToken
-from .tokens_manager import extract_sentences_by_tokens
+from .tokens_manager import extract_sentences
 from .linked_tokens import LinkedTokens
 #production
 #from regina_normalizer import abbr_functions
@@ -27,7 +27,7 @@ class NormalizerManager:
 
         pre_normalized = []
         final_normalized = []
-        text_arr = extract_sentences_by_tokens(token_list)
+        text_arr = extract_sentences(token_list)
         for sent in text_arr:
             if not sent:
                 continue

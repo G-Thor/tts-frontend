@@ -23,7 +23,7 @@ from .settings import (
     VALID_CHARACTERS,
 )
 from .tts_tokenizer import Tokenizer
-from .tokens_manager import extract_text, extract_clean, extract_sentences, extract_sentences_by_transcribed, align_tokens
+from .tokens_manager import *
 from .cleaner_manager import CleanerManager
 from .normalizer_manager import NormalizerManager
 from .spellchecker_manager import SpellCheckerManager
@@ -113,7 +113,7 @@ class Manager:
         :param split_sent: if True, the resulting list will contain sentence split tagTokens
         :return:
         """
-        tokenized = self.tokenizer.detect_sentences(extract_clean(text_as_list))
+        tokenized = self.tokenizer.detect_sentences(extract_clean_text(text_as_list))
         clean_tokenized = align_tokens(text_as_list, tokenized, split_sent)
         return clean_tokenized
 
@@ -123,7 +123,7 @@ class Manager:
 
         :param text: raw text or html-text to normalize
         :param html: if True, 'text' will be interpreted as html-string and parsed accordingly
-        :return: a list or NormalizedTokens representing a normalized version of 'text' with additional TagTokens representing
+        :return: a list of Tokens representing a normalized version of 'text' with additional TagTokens representing
         ssml-tags or pauses. Includes processing history of each token.
         of each token
         """
@@ -141,7 +141,7 @@ class Manager:
         :param text: raw text or html-text to normalize and phrase
         :param html: if True, 'text' will be interpreted as html-string and parsed accordingly
         :param split_sent: if True, split 'text' into sentences or meaningful phrase chunk for the TTS
-        :return: a list of PhraseTokens representing a normalized version of 'text' with additional TagTokens representing
+        :return: a list of Tokens representing a normalized version of 'text' with additional TagTokens representing
         ssml-tags or pauses. Includes processing history of each token.
         """
         normalized = self.normalize(text, html=html, split_sent=split_sent)
@@ -158,7 +158,7 @@ class Manager:
         :param spellcheck: if True, perform spellcheck after normalizing
         :param syllab_stress: if True, add syllabification and stress labels to the phonetic transcripts
         :param split_sent: if True, split 'text' into sentences or meaningful phrase chunk for the TTS
-        :return: a list of TranscribedTokens representing a transcribed version of 'text' with additional TagTokens representing
+        :return: a list of Tokens representing a transcribed version of 'text' with additional TagTokens representing
         ssml-tags or pauses. Includes processing history of each token.
         """
         if phrasing:
@@ -172,19 +172,71 @@ class Manager:
         transcribed = self.g2p.transcribe(normalized)
         return transcribed
 
-    def get_string_representation(self, token_list: list, ignore_tags=True, word_separator='') -> str:
-        """Extract token names from the outer-most tokens in token_list. That is, if we have a list of
-        normalized tokens, a normalized string is returned, if we have a list of transcribed tokens a transcribed
-        string is returned.
+    #######################################################################################################
+    #
+    #           METHODS FOR DIFFERENT STRING REPRESENTATIONS OF A PROCESSED TEXT
+    #
+    #######################################################################################################
+
+    @staticmethod
+    def get_string_representation_original(token_list: list, ignore_tags=True, word_separator='') -> str:
+        """Extract original token names from the tokens in token_list.
         :param token_list: the token list to turn into string
         :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned string
         :param word_separator: if not empty, the separator will be inserted between each token.
-        :return a string extracted from token_list"""
+        :return the original string extracted from token_list"""
 
         return extract_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
 
-    def get_sentence_representation(self, token_list: list, ignore_tags=True, word_separator='') -> list:
-        """Extract original token names from token_list.
+    @staticmethod
+    def get_string_representation_clean(token_list: list, ignore_tags=True, word_separator='') -> str:
+        """Extract a clean version from the tokens in token_list.
+
+        :param token_list: the token list to turn into string
+        :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned string
+        :param word_separator: if not empty, the separator will be inserted between each token.
+        :return a cleaned string extracted from token_list"""
+
+        return extract_clean_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+
+    @staticmethod
+    def get_string_representation_tokens(token_list: list, ignore_tags=True, word_separator='') -> str:
+        """Extract a tokenized version from the tokens in token_list, i.e. a string where each token is
+        separated by a whitespace. Note that the tokenized version is also a clean version (whereas the clean
+        version might not yet be correctly tokenized).
+        :param token_list: the token list to turn into string
+        :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned string
+        :param word_separator: if not empty, the separator will be inserted between each token.
+        :return a tokenized string extracted from token_list"""
+
+        return extract_tokenized_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+
+    @staticmethod
+    def get_string_representation_normalized(token_list: list, ignore_tags=True, word_separator='') -> str:
+        """Extract a normalized version from the tokens in token_list.
+
+        :param token_list: the token list to turn into string
+        :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned string
+        :param word_separator: if not empty, the separator will be inserted between each token.
+        :return a normalized string extracted from token_list"""
+
+        return extract_normalized_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+
+    @staticmethod
+    def get_string_representation_transcribed(token_list: list, ignore_tags=True, word_separator='') -> str:
+        """Extract a transcribed version from the tokens in token_list.
+
+        :param token_list: the token list to turn into string
+        :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned string
+        :param word_separator: if not empty, the separator will be inserted between each token.
+        :return a transcribed string extracted from token_list"""
+
+        return extract_transcribed_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+
+    @staticmethod
+    def get_tokenized_sentence_representation(token_list: list, ignore_tags=True, word_separator='') -> list:
+        """Extract sentences from token_list. The lowest level for sentences is the cleaned and tokenized version of the
+        original text, since the sentence segmentation is performed during tokenization.
 
         :param token_list: the token list to turn into a list of sentence strings
         :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned strings
@@ -194,13 +246,26 @@ class Manager:
 
         return extract_sentences(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
 
-    def get_transcribed_sentence_representation(self, token_list: list, ignore_tags=True, word_separator='') -> list:
+    @staticmethod
+    def get_normalized_sentence_representation(token_list: list, ignore_tags=True, word_separator='') -> list:
         """Extract transcribed sentences from token_list.
 
         :param token_list: the token list to turn into a list of sentence strings
         :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned strings
         :param word_separator: if not empty, the separator will be inserted between each token.
-        :return a list of sentences where each sentence represents tokens between sentence separator tag-tokens.
+        :return a list of normalized sentences where each sentence represents tokens between sentence separator tag-tokens.
+        If no sentence separator is present in token_list, the list will have len==1."""
+
+        return extract_sentences_by_normalized(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+
+    @staticmethod
+    def get_transcribed_sentence_representation(token_list: list, ignore_tags=True, word_separator='') -> list:
+        """Extract transcribed sentences from token_list.
+
+        :param token_list: the token list to turn into a list of sentence strings
+        :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned strings
+        :param word_separator: if not empty, the separator will be inserted between each token.
+        :return a list of transcribed sentences where each sentence represents tokens between sentence separator tag-tokens.
         If no sentence separator is present in token_list, the list will have len==1."""
 
         return extract_sentences_by_transcribed(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
@@ -214,29 +279,26 @@ def parse_args():
 
 
 def main():
-    input_text1 = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
-    input_text = 'Þetta er allt vittlaust'
+    args = parse_args()
+    if not args.input_text:
+        print('please provide string to process!')
+        exit()
 
-    #args = parse_args()
-    #if not args.input_text:
-    #    print('please provede string to process!')
-    #    exit()
-
-    #input_text = args.input_text
+    input_text = args.input_text
     manager = Manager()
     clean_input = manager.clean(input_text)
     print('==========CLEAN=============')
-    print(extract_text(clean_input))
+    print(manager.get_string_representation_clean(clean_input))
     normalized_input = manager.normalize(input_text)
     print('==========NORMALIZED=============')
-    print(extract_text(normalized_input))
+    print(manager.get_string_representation_normalized(normalized_input))
     phrased = manager.phrase(input_text)
     print('==========PHRASED=============')
-    print(extract_text(phrased, False))
+    print(manager.get_string_representation_normalized(phrased, False))
     manager.set_g2p_syllab_symbol('.')
     transcribed = manager.transcribe(input_text, phrasing=False)
     print('==========TRANSCRIBED=============')
-    print(extract_text(transcribed, False))
+    print(manager.get_string_representation_transcribed(transcribed, False))
 
 
 if __name__ == '__main__':

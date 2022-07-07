@@ -121,7 +121,7 @@ class TestNormalizer(unittest.TestCase):
         manager = Manager()
         input_text = self.get_long_text1()
         normalized = manager.normalize(input_text, split_sent=True)
-        result = manager.get_sentence_representation(normalized, ignore_tags=False)
+        result = manager.get_normalized_sentence_representation(normalized, ignore_tags=False)
         #for sent in result:
         #    print(sent)
         self.assertEqual(3, len(result))
@@ -130,7 +130,7 @@ class TestNormalizer(unittest.TestCase):
         manager = Manager()
         input_text = self.get_longer_text_2()
         normalized = manager.normalize(input_text, split_sent=True)
-        result = manager.get_sentence_representation(normalized, ignore_tags=False)
+        result = manager.get_normalized_sentence_representation(normalized, ignore_tags=False)
         for sent in result:
             print(sent)
         self.assertEqual(10, len(result))
@@ -140,7 +140,7 @@ class TestNormalizer(unittest.TestCase):
         manager = Manager()
         input_text = self.get_html_string()
         normalized = manager.normalize(input_text, html=True, split_sent=True)
-        result = manager.get_sentence_representation(normalized, ignore_tags=False)
+        result = manager.get_normalized_sentence_representation(normalized, ignore_tags=False)
         print("no. of sentences: " + str(len(result)))
         for sent in result:
             print(sent)

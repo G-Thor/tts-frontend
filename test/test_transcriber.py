@@ -68,7 +68,7 @@ class TestTranscriber(unittest.TestCase):
         manager = Manager()
         test_string = self.get_longer_text_2()
         transcribed = manager.transcribe(test_string, phrasing=False)
-        result_arr = manager.get_sentence_representation(transcribed, ignore_tags=False)
+        result_arr = manager.get_transcribed_sentence_representation(transcribed, ignore_tags=False)
         self.assertEqual(10, len(result_arr))
         for sent in result_arr:
             print(sent)

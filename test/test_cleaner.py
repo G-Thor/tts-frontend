@@ -10,47 +10,47 @@ class TestCleaner(unittest.TestCase):
         manager = Manager()
         input_text = 'Alltaf að hreinsä allt 🥵'
         result = manager.clean(input_text)
-        result_str = tokens.extract_clean(result)
+        result_str = tokens.extract_clean_text(result)
         self.assertEqual('Alltaf að hreinse allt .', result_str)
         input_text = 'Leikurinn fór ca. 5-2'
         result = manager.clean(input_text)
-        result_str = tokens.extract_clean(result)
+        result_str = tokens.extract_clean_text(result)
         self.assertEqual('Leikurinn fór ca. 5-2', result_str)
         input_text = '§ Því fleiri, því betri'
         result = manager.clean(input_text)
-        result_str = tokens.extract_clean(result)
+        result_str = tokens.extract_clean_text(result)
         self.assertEqual('Því fleiri, því betri', result_str)
 
     def test_ssml(self):
         manager = Manager()
         input_text = 'Þetta (e. is English)'
         result = manager.clean(input_text)
-        result_str = tokens.extract_clean(result, ignore_tags=False)
+        result_str = tokens.extract_clean_text(result, ignore_tags=False)
         self.assertEqual('Þetta <lang xml:lang="en-GB"> is English </lang>', result_str)
 
     def test_html_clean(self):
         manager = Manager()
         input_text = self.get_html_string()
         result = manager.clean(input_text, html=True)
-        self.assertEqual(len(result), 91)
+        self.assertEqual(len(result), 92)
         self.assertEqual(result[0].clean, 'Í')
         self.assertEqual(result[30].ssml_start, True)
         self.assertEqual(result[31].clean, 'salutogenesis')
-        self.assertEqual(result[75].ssml_end, True)
-        print(tokens.extract_clean(result, ignore_tags=False))
+        self.assertEqual(result[76].ssml_end, True)
+        print(tokens.extract_clean_text(result, ignore_tags=False))
 
     def test_html_table_clean(self):
         manager = Manager()
         input_text = self.get_html_string2()
         result = manager.clean(input_text, html=True)
-        self.assertEqual(len(result), 401)
-        self.assertEqual(result[400].clean, 'samhengi.')
+        self.assertEqual(len(result), 453)
+        self.assertEqual('samhengi', result[451].clean)
 
     def test_html_table2_clean(self):
         manager = Manager()
         input_text = self.get_html_table_2()
         result = manager.clean(input_text, html=True)
-        print(tokens.extract_clean(result))
+        print(tokens.extract_clean_text(result))
 
     def get_html_string(self):
         return '<p id="hix00274"><span id="qitl_0591" class="sentence">Í kjölfarið sýndi hann fram á að það stuðli að ' \

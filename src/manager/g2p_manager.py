@@ -4,8 +4,7 @@ a string in an input format for a TTS system. Following formats are supported:
 ...
 ...
 """
-import os
-import re
+
 from .tokens import Token, Normalized, TagToken
 from ice_g2p.transcriber import Transcriber, G2P_METHOD
 from ice_g2p.g2p_lstm import ALPHABET, ENGLISH_ALPHABET
