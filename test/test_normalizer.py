@@ -284,9 +284,9 @@ class TestNormalizer(unittest.TestCase):
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_3.html'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_4.html'
         # input_file = '../HBS-2022-06-30/FST_Toflu_test_5.html'
-        # input_file = '../HBS-2022-06-30/FST_Toflu_test_6.html'
-        input_file = '../HBS-2022-06-30/FST_Toflu_test_7.html'
-        # input_file = '../HBS-2022-06-30/Textatalgervilsprofun_ur_bok_Fjarmal.html'
+        input_file = '../HBS-2022-06-30/FST_Toflu_test_6.html'
+        # input_file = '../HBS-2022-06-30/FST_Toflu_test_7.html'
+        #input_file = '../HBS-2022-06-30/Textatalgervilsprofun_ur_bok_Fjarmal.html'
         with open(input_file) as f:
             return f.read()
 
