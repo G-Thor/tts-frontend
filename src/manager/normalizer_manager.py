@@ -143,6 +143,9 @@ class NormalizerManager:
                     # The original token might have been deleted during the cleaning step, so no
                     # further processing will have taken place. We keep the original token in the list for the record
                     normalized_tokens.append(tok)
+                    # don't increment normalized lists in this case, they will not have a corresponding entry
+                    token_list_index += 1
+                    continue
 
                 # The original (tokenized) token is the same as the input for the final normalizing step,
                 # but the normalized version contains more than one token:
