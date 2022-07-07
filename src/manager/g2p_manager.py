@@ -5,10 +5,10 @@ a string in an input format for a TTS system. Following formats are supported:
 ...
 """
 import os
-
+import re
 from .tokens import Token, Normalized, TagToken
 from ice_g2p.transcriber import Transcriber, G2P_METHOD
-
+from ice_g2p.g2p_lstm import ALPHABET, ENGLISH_ALPHABET
 
 SIL_TOKEN = '<sil>'
 ENGLISH = 'enska'
@@ -91,6 +91,7 @@ class G2PManager:
                                 if word.startswith('<'):
                                     transcribed = word.strip()
                                 else:
+                                    word = ''.join(c for c in word.lower() if c in ALPHABET or c in ENGLISH_ALPHABET)
                                     transcribed = self.g2p.transcribe(word.lower().strip(), icelandic=is_icelandic)
                                 transcribed_arr.append(transcribed.strip())
                 token.set_transcribed(transcribed_arr)

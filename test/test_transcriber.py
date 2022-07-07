@@ -59,10 +59,10 @@ class TestTranscriber(unittest.TestCase):
         manager = Manager()
         test_string = self.get_longer_text()
         transcribed = manager.transcribe(test_string, html=True)
-        result_arr = manager.get_sentence_representation(transcribed, ignore_tags=False)
-        self.assertEqual(3, len(result_arr))
+        result_arr = manager.get_transcribed_sentence_representation(transcribed, ignore_tags=False)
         for sent in result_arr:
             print(sent)
+        self.assertEqual(4, len(result_arr))
 
     def test_longer_text_2(self):
         manager = Manager()
@@ -92,10 +92,10 @@ class TestTranscriber(unittest.TestCase):
         manager = Manager()
         test_string = self.get_problematic_html()
         transcribed = manager.transcribe(test_string, phrasing=True, html=True)
-        result_arr = manager.get_sentence_representation(transcribed, ignore_tags=False)
-        #for sent in result_arr:
-        #    print(sent)
-        self.assertEqual(len(result_arr), 17)
+        result_arr = manager.get_transcribed_sentence_representation(transcribed, ignore_tags=False)
+        for sent in result_arr:
+            print(sent)
+        self.assertEqual(len(result_arr), 25)
 
     def get_custom_dict(self):
         custom = {'texti': 't_h E x s t I', 'engir': '9 N k v I r'}

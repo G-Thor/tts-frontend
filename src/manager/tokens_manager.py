@@ -307,25 +307,26 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
         token = clean_token_list[clean_counter]
         if tokenized_counter >= len(token_list):
             print('tokenized: ' + str(tokenized_counter) + ', cleaned: ' + str(clean_counter) + ' ' + token.name)
-        elif token.name == token_list[tokenized_counter]:
-            token.set_tokenized([token_list[tokenized_counter]])
-            aligned_list.append(token)
         elif isinstance(token, TagToken):
             aligned_list.append(token)
             # tag tokens are not present in token_list, halt the counting for token_list
             tokenized_counter -= 1
-        elif token_list[tokenized_counter].startswith('<'):
-            tag_token = TagToken(token_list[tokenized_counter], clean_counter)
-            aligned_list.append(tag_token)
-            # don't we have a 'dot' or some equivalent token in the clean-token-list? or do we need some kind of a flag?
-            if token.name != '.':
-                set_step_back_counter = True
         elif not token.clean:
             # clean token is empty, meaning original token was deleted during cleaning
             # repeat comparison with tokenized list in the next round
             token.set_tokenized([])
             aligned_list.append(token)
             tokenized_counter -= 1
+        elif token.name == token_list[tokenized_counter]:
+            token.set_tokenized([token_list[tokenized_counter]])
+            aligned_list.append(token)
+        elif token_list[tokenized_counter].startswith('<'):
+            tag_token = TagToken(token_list[tokenized_counter], clean_counter)
+            aligned_list.append(tag_token)
+            # don't we have a 'dot' or some equivalent token in the clean-token-list? or do we need some kind of a flag?
+            # let's not step back if the token does not have a clean version, probably some symbol deleted by the cleaner
+            if token.name != '.':
+                set_step_back_counter = True
         else:
             non_splitted_token = token_list[tokenized_counter]
             tokenized_arr = [non_splitted_token]
