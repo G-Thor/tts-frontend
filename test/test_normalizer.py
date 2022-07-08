@@ -279,7 +279,7 @@ class TestNormalizer(unittest.TestCase):
 
     def test_texts_from_html_file(self):
         manager = Manager()
-        input_text = self.get_very_long_text()
+        input_text = self.get_very_long_html_text()
         normalized = manager.normalize(input_text, html=True, split_sent=True)
         norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
         print(norm_text)
@@ -298,19 +298,18 @@ class TestNormalizer(unittest.TestCase):
             print(sent)
 
     def get_very_long_html_text(self):
-        # input_file = '../Akranes_10.txt'
-        # input_file = '../HBS-2022-06-30/FST_Toflu_test_2.html'
-        # input_file = '../HBS-2022-06-30/FST_Toflu_test_3.html'
-        # input_file = '../HBS-2022-06-30/FST_Toflu_test_4.html'
-        # input_file = '../HBS-2022-06-30/FST_Toflu_test_5.html'
-        # input_file = '../HBS-2022-06-30/FST_Toflu_test_6.html'
-        # input_file = '../HBS-2022-06-30/FST_Toflu_test_7.html'
-        input_file = '../HBS-2022-06-30/Textatalgervilsprofun_ur_bok_Fjarmal.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_2.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_3.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_4.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_5.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_6.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_7.html'
+        input_file = 'data/HBS-2022-06-30/Textatalgervilsprofun_ur_bok_Fjarmal.html'
         with open(input_file) as f:
             return f.read()
 
     def get_very_long_text(self):
-        input_file = '../Akranes_10.txt'
+        input_file = 'data/Akranes_10.txt'
         with open(input_file) as f:
             return f.read()
 
