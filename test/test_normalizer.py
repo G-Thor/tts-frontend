@@ -277,6 +277,8 @@ class TestNormalizer(unittest.TestCase):
         norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
         print(norm_text)
 
+    # Development 'tests' for inspection of the processing of long files, no assertions
+    """
     def test_texts_from_html_file(self):
         manager = Manager()
         input_text = self.get_very_long_html_text()
@@ -312,7 +314,7 @@ class TestNormalizer(unittest.TestCase):
         input_file = 'data/Akranes_10.txt'
         with open(input_file) as f:
             return f.read()
-
+    """
     def get_long_text1(self):
         return 'Eins var þess krafðist að bankasölunni yrði rift. Að fundinum stóðu UNG ASÍ, Jæja hópurinn, Ungir Píratar, ' \
                'Ungir sósíalistar og Ungir jafnaðarmenn. Svalt var á Austurvelli í dag en hiti í fundarmönnum. '
