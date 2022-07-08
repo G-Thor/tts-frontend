@@ -1,7 +1,7 @@
 import unittest
 import os
-from src.manager.textprocessing_manager import Manager
-import src.manager.tokens_manager as tokens
+from manager.textprocessing_manager import Manager
+import manager.tokens_manager as tokens
 
 
 class TestTokenizer(unittest.TestCase):

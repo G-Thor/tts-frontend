@@ -1,6 +1,6 @@
 import unittest
 import pprint
-from src.manager.textprocessing_manager import Manager
+from manager.textprocessing_manager import Manager
 
 
 class TestManager(unittest.TestCase):
