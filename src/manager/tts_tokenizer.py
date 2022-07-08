@@ -13,6 +13,8 @@ class Tokenizer:
     def __init__(self, abbreviations: set, nonending_abbr: set):
         self.abbreviations = abbreviations
         self.abbreviations_non_ending = nonending_abbr
+        # if True, prevents a space once set to be deleted at later processing stages, in append_token()
+        self.freeze_space = False
 
     @staticmethod
     def read_list(filename: str) -> list:
@@ -45,6 +47,7 @@ class Tokenizer:
             if last_token:
                 continue
             tmp_str = self.update_tmp_string(sentences, tmp_str, tokenized)
+            self.freeze_space = False
 
         self.finish_sentence(sentences, tmp_str, last_token)
         return sentences
@@ -102,11 +105,12 @@ class Tokenizer:
                 tmp_string = ''
         return tmp_string
 
-    @staticmethod
-    def append_token(tmp_string: str, token: str) -> str:
+    def append_token(self, tmp_string: str, token: str) -> str:
         """ 'token' might end with ' .', delete the space, because we are dealing with an abbreviation
         or a digits pattern that should not contain a space before the '.'"""
-        token = token.replace(' ', '')
+        if not self.freeze_space:
+            token = token.replace(' ', '')
+
         return tmp_string + token + ' '
 
     @staticmethod
@@ -133,12 +137,19 @@ class Tokenizer:
         """ If last token ended with a dot we look at if the current token starts with an uppercase character and if
         last token is non sentence ending abbreviation. Generally, if next token starts with an uppercase letter
         we have an EOS unless the last token (the dot - token) is a one letter uppercase abbreviation or a defined
-        non sentence ending abbreviation (like 'Hr.' which should always be followed by a name)
+        non sentence ending abbreviation (like 'Hr.' which should always be followed by a name).
         """
         if not current:
             return False
+        # if we have an isolated dot, assume we want to have a sentence split at that place
+        if last == '.':
+            return True
         if current[0].isupper() or current[0] == '"':
-            return not self.is_uppercase_abbr(last) and last.lower() not in self.abbreviations_non_ending
+            uppercase_abbr = self.is_uppercase_abbr(last)
+            abbr_non_ending = last.lower() in self.abbreviations_non_ending
+            current_is_abbr = self.is_abbreviation(current)
+            #last_is_ordinal = re.fullmatch('\d+\.') - do we need to limit current_abbr to preceeding ordinal?
+            return not uppercase_abbr and not abbr_non_ending and not current_is_abbr
         return False
 
     @staticmethod
@@ -156,15 +167,20 @@ class Tokenizer:
         # First, check if we need to process the token, several categories do not need further processing even if
         # the token contains a non-alphabetic character, just return the token as is
         if not self.should_process(token):
+            # we need to insert spaces after and before enclosing parenthesis regardless
+            # of the return value of "should process", also if a token ends with a comma, insert space
+            token = re.sub('(\\()(.+)(\\))', '\\g<1> \\g<2> \\g<3>', token)
+            if token.endswith(','):
+                token = token[:-1] + ' ,'
             return token
 
         # For all kinds of punctuation we need to insert spaces at the correct positions
         # Patterns:
         processed_token = token
         # insert space after these symbols: '(', '[', '{', '-', '_'
-        insert_space_after_anywhere = '([(\\[{\\-/_])'
+        insert_space_after_anywhere = '([(\\[{\\-/_+])'
         # insert space before these symbols: ')', '[', '}' '-', '_'  TODO: shouldn't '[' be ']' ?
-        insert_space_before_anywhere = '([)\\]}\\-/_])'
+        insert_space_before_anywhere = '([)\\]}\\-/_%+])'
         # insert space after these symbols at the beginning of a token: '"',
         insert_space_after_if_beginning = '^(\")(.+)'
         # insert space before these symbols at the end of a token: '"', ':', ',', '.', '!', '?'
@@ -188,9 +204,10 @@ class Tokenizer:
         """
         if len(token) <= 1:
             return False
-        # possibly a year at the end of a sentenc? If yes, we want the dot to be detached
+        # possibly a year at the end of a sentence? If yes, we want the dot to be detached
         # we only consider 4 digit years up to year 2099
         if re.fullmatch('(1\\d{3})|(20\\d{2})\\.', token):
+            self.freeze_space = True
             return True
         # a simple cardinal or ordinal number
         if re.fullmatch('\\d+\\.?', token):
@@ -199,9 +216,9 @@ class Tokenizer:
         if re.fullmatch('(\\d+[.,:]\\d+)+[,.]?', token):
             return False
         # telephone number or 'kennitala', don't split on hyphen
-        if re.fullmatch('\\d{3}-\\d{4}', token):
+        if re.fullmatch('\\d{3}-\\d{4}[,.?:]?', token):
             return False
-        if re.fullmatch('\\d{6}-\\d{4}', token):
+        if re.fullmatch('\\d{6}-\\d{4}[,.?:]?', token):
             return False
         # don't split on hyphen if we have a digits pattern with more than one hyphen
         if re.fullmatch('(\\d+-){2,}\\d+', token):
@@ -215,7 +232,7 @@ class Tokenizer:
         # special cases - resolve! We need to have simple rules for when to split and when not, the tokenizer
         # should not have to know too much about the normalizer!
         if re.match('(millj./)|(.+/klst)|(.+/kwst)|(.+/gwst)|(.+/gw\\.st)|(.+/mwst)|(.+/twst)|(.+/m²)|(.+/m³)'
-                    '|(.+/mm²)|(.+/mm³)|(.+/cm²)|(.+/cm³)|(.+/ferm)|(.+/%)', token.lower()):
+                    '|(.+/mm²)|(.+/mm³)|(.+/cm²)|(.+/cm³)|(.+/ferm)', token.lower()):
             return False
         # don't split smileys TODO: add more patterns here
         if re.fullmatch('(:\))|(:\()', token):
@@ -237,7 +254,9 @@ class Tokenizer:
         return re.match('(' + UPPER_CASE + '\\.)+', token) and not self.is_abbreviation(token)
 
     def is_abbreviation(self, token: str) -> bool:
-        if token.lower() in self.abbreviations:
+        # is adding the dot for abbr-testing too general?
+        # added to fetch month abbreviations erroneously written with an uppercase and without a dot
+        if token.lower() in self.abbreviations or token.lower() + '.' in self.abbreviations:
             return True
         return token.lower() in self.abbreviations_non_ending
 

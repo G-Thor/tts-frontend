@@ -1,7 +1,7 @@
 import unittest
 import os
-from src.manager.textprocessing_manager import Manager
-import src.manager.tokens_manager as tokens
+from manager.textprocessing_manager import Manager
+import manager.tokens_manager as tokens
 
 
 class TestCleaner(unittest.TestCase):
@@ -10,34 +10,47 @@ class TestCleaner(unittest.TestCase):
         manager = Manager()
         input_text = 'Alltaf að hreinsä allt 🥵'
         result = manager.clean(input_text)
-        result_str = tokens.extract_text(result)
+        result_str = tokens.extract_clean_text(result)
         self.assertEqual('Alltaf að hreinse allt .', result_str)
         input_text = 'Leikurinn fór ca. 5-2'
         result = manager.clean(input_text)
-        result_str = tokens.extract_text(result)
+        result_str = tokens.extract_clean_text(result)
         self.assertEqual('Leikurinn fór ca. 5-2', result_str)
         input_text = '§ Því fleiri, því betri'
         result = manager.clean(input_text)
-        result_str = tokens.extract_text(result)
+        result_str = tokens.extract_clean_text(result)
         self.assertEqual('Því fleiri, því betri', result_str)
+
+    def test_ssml(self):
+        manager = Manager()
+        input_text = 'Þetta (e. is English)'
+        result = manager.clean(input_text)
+        result_str = tokens.extract_clean_text(result, ignore_tags=False)
+        self.assertEqual('Þetta <lang xml:lang="en-GB"> is English </lang>', result_str)
 
     def test_html_clean(self):
         manager = Manager()
         input_text = self.get_html_string()
         result = manager.clean(input_text, html=True)
-        self.assertEqual(len(result), 91)
-        self.assertEqual(result[0].name, 'Í')
+        self.assertEqual(len(result), 92)
+        self.assertEqual(result[0].clean, 'Í')
         self.assertEqual(result[30].ssml_start, True)
-        self.assertEqual(result[31].name, 'salutogenesis')
-        self.assertEqual(result[75].ssml_end, True)
-        print(tokens.extract_text(result, ignore_tags=False))
+        self.assertEqual(result[31].clean, 'salutogenesis')
+        self.assertEqual(result[76].ssml_end, True)
+        print(tokens.extract_clean_text(result, ignore_tags=False))
 
     def test_html_table_clean(self):
         manager = Manager()
         input_text = self.get_html_string2()
         result = manager.clean(input_text, html=True)
-        self.assertEqual(len(result), 401)
-        self.assertEqual(result[400].name, 'samhengi.')
+        self.assertEqual(len(result), 453)
+        self.assertEqual('samhengi', result[451].clean)
+
+    def test_html_table2_clean(self):
+        manager = Manager()
+        input_text = self.get_html_table_2()
+        result = manager.clean(input_text, html=True)
+        print(tokens.extract_clean_text(result))
 
     def get_html_string(self):
         return '<p id="hix00274"><span id="qitl_0591" class="sentence">Í kjölfarið sýndi hann fram á að það stuðli að ' \
@@ -93,3 +106,98 @@ class TestCleaner(unittest.TestCase):
         '</tr>' \
       '</tbody>' \
     '</table>'
+
+    def get_html_table_2(self):
+        return '<!DOCTYPE html>' \
+            '<html>' \
+                '<head>' \
+                    '<title>Prufuskjal fyrir talgervil</title>' \
+                '</head>' \
+                '<body>' \
+                    '<div>' \
+                        '<h1>Leiðir til að lækka (-) eða auka (+) kostnað heimila</h1>' \
+                            '<table>' \
+                                '<caption id="hix00215">Það er ódýrara að búa í litlu húsnæði en stóru, eiga húsnæði ' \
+               'frekar en að leigja, búa í úthverfi frekar en í miðbænum o.s.frv.</caption>' \
+                                '<tbody>' \
+                                    '<tr>' \
+                                        '<td id="hix00216" colspan="3"><strong>Húsnæði</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00217">−</td>' \
+                                        '<td id="hix00218"><strong>KOSTNAÐUR</strong></td>' \
+                                        '<td id="hix00219">+</td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00220">Minna húsnæði</td>' \
+                                        '<td id="hix00221"></td>' \
+                                        '<td id="hix00222"><strong>Stærra húsnæði</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00223">Eiga íbúð</td>' \
+                                        '<td id="hix00224"> </td>' \
+                                        '<td id="hix00225"><strong>Leigja íbúð</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00226">Búa í úthverfi</td>' \
+                                        '<td id="hix00227"> </td>' \
+                                        '<td id="hix00228"><strong>Búa í miðbænum</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00229" colspan="3"><strong>Samgöngur</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00230">−</td>' \
+                                        '<td id="hix00231"><strong>KOSTNAÐUR</strong></td>' \
+                                        '<td id="hix00232">+</td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00233">Strætó / hjól</td>' \
+                                        '<td id="hix00234"></td>' \
+                                        '<td id="hix00235"><strong>Eigin bíll</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00236">Bílakaup með sparifé</td>' \
+                                        '<td id="hix00237"></td>' \
+                                        '<td id="hix00238"><strong>Með bílaláni</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00239">Búa í miðbænum</td>' \
+                                        '<td id="hix00240"></td>' \
+                                        '<td id="hix00241"><strong>Búa í úthverfi</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00242" colspan="3"><strong>Matur og hreinlætisvörur</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00243">−</td>' \
+                                        '<td id="hix00244"><strong>KOSTNAÐUR</strong></td>' \
+                                        '<td id="hix00245">+</td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00246">Minna</td>' \
+                                        '<td id="hix00247"></td>' \
+                                        '<td id="hix00248"><strong>Meira</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00249">Góð nýting</td>' \
+                                        '<td id="hix00250"></td>' \
+                                        '<td id="hix00251"><strong>Sóun</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00252" colspan="3"><strong>Tómstundir</strong></td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00253">−</td>' \
+                                        '<td id="hix00254"><b>KOSTNAÐUR</b></td>' \
+                                        '<td id="hix00255">+</td>' \
+                                    '</tr>' \
+                                    '<tr>' \
+                                        '<td id="hix00256">Minna</td>' \
+                                        '<td id="hix00257"></td>' \
+                                        '<td id="hix00258"><strong>Meira</strong></td>' \
+                                    '</tr>' \
+                                '</tbody>' \
+                            '</table>' \
+                        '</div>' \
+                    '</body></html>'

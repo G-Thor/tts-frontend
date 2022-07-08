@@ -1,7 +1,7 @@
 import unittest
 import os
-from src.manager.textprocessing_manager import Manager
-import src.manager.tokens_manager as tokens
+from manager.textprocessing_manager import Manager
+import manager.tokens_manager as tokens
 
 
 class TestNormalizer(unittest.TestCase):
@@ -10,39 +10,75 @@ class TestNormalizer(unittest.TestCase):
         manager = Manager()
         input_text = '10-18 m/s'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('tíu til átján metrar á sekúndu', result_str)
-        self.assertEqual('m/s', normalized[5].original_token.name)
+        self.assertEqual('m/s', normalized[1].name)
         input_text = 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags.'
         normalized = manager.normalize(input_text, split_sent=False)
-        result_str = tokens.extract_text(normalized, ignore_tags=False)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
         self.assertEqual('Snýst í suðaustan tíu til átján metrar á sekúndu og hlýnar með rigningu <sil> en norðaustanátt og '
-                         'snjókoma norðvestan til fyrri part dags', result_str)
-        self.assertEqual('NV-til', normalized[19].original_token.name)
+                         'snjókoma norðvestan til fyrri part dags <sentence>', result_str)
+        self.assertEqual('NV-til', normalized[14].name)
+        for elem in normalized:
+            print(elem.to_json())
 
     def test_normalize_denom(self):
         manager = Manager()
         input_text = '5/6'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('fimm sjöttu', result_str)
         input_text = '50 EUR/t og 3,5 millj./ha .'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('fimmtíu evrur á tonnið og þrjár komma fimm milljónir á hektarann', result_str)
 
     def test_normalize_abbr(self):
         manager = Manager()
         input_text = 'þetta voru ca. 5 mín.'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('þetta voru sirka fimm mínútur', result_str)
         input_text = '500 kwst.'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         #normalizer does not normalize kwst. correctly, has to do with upper and lower case
         #TODO: fix in normalizer
         #self.assertEqual('fimm hundruð kílóvattstundir', result_str)
+
+    def test_decimals(self):
+        manager = Manager()
+        input_text = '20,86'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('tuttugu komma áttatíu og sex', result_str)
+        input_text = '143,20'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('hundrað fjörutíu og þrjú komma tuttugu', result_str)
+        input_text = '176,64'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('hundrað sjötíu og sex komma sextíu og fjögur', result_str)
+        input_text = '1,316'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('eitt komma þrjú eitt sex', result_str)
+        input_text = '1,04'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('eitt komma núll fjögur', result_str)
+
+    def test_normalize_negative_numbers(self):
+        manager = Manager()
+        input_text = '-2'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('mínus tvö', result_str)
+        input_text = '-3,5%'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('mínus þrjú komma fimm prósent', result_str)
 
     def test_normalize_foreign(self):
         manager = Manager()
@@ -52,29 +88,29 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual('the wall', result_str)
         input_text = 'certainly cawity'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
-        self.assertEqual('certainly kavity', result_str)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('certainly cawity', result_str)
 
     def test_normalize_numbers(self):
         manager = Manager()
-        input_text = 'Sími 570 2367 á sjúkrahúsinu'
+        input_text = 'Síminn er 570 2367 á sjúkrahúsinu'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
-        self.assertEqual('Sími fimm sjö núll <sil> tveir þrír sex sjö á sjúkrahúsinu', result_str)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('Síminn er fimm sjö núll <sil> tveir þrír sex sjö á sjúkrahúsinu', result_str)
 
     def test_normalize_acronyms(self):
         manager = Manager()
         input_text = 'Eins og FTSE vísitalan segir AIDS'
         normalized = manager.normalize(input_text)
-        result_str = tokens.extract_text(normalized)
+        result_str = tokens.extract_normalized_text(normalized)
         print(result_str)
-        self.assertEqual('Eins og F T S E vísitalan segir A I D S', result_str)
+        self.assertEqual('Eins og F T S E vísitalan segir AIDS', result_str)
 
     def test_split_sentences(self):
         manager = Manager()
         input_text = self.get_long_text1()
         normalized = manager.normalize(input_text, split_sent=True)
-        result_str = tokens.extract_text(normalized, ignore_tags=False)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
         self.assertEqual('Eins var þess krafðist að bankasölunni yrði rift <sentence> Að fundinum stóðu U N G A S Í <sil> '
                          'Jæja hópurinn <sil> '
                          'Ungir Píratar <sil> Ungir sósíalistar og Ungir jafnaðarmenn <sentence> '
@@ -85,7 +121,7 @@ class TestNormalizer(unittest.TestCase):
         manager = Manager()
         input_text = self.get_long_text1()
         normalized = manager.normalize(input_text, split_sent=True)
-        result = manager.get_sentence_representation(normalized, ignore_tags=False)
+        result = manager.get_normalized_sentence_representation(normalized, ignore_tags=False)
         #for sent in result:
         #    print(sent)
         self.assertEqual(3, len(result))
@@ -94,38 +130,191 @@ class TestNormalizer(unittest.TestCase):
         manager = Manager()
         input_text = self.get_longer_text_2()
         normalized = manager.normalize(input_text, split_sent=True)
-        result = manager.get_sentence_representation(normalized, ignore_tags=False)
+        result = manager.get_normalized_sentence_representation(normalized, ignore_tags=False)
         for sent in result:
             print(sent)
         self.assertEqual(10, len(result))
-
-    def test_split_sentences_to_list_3(self):
-        #TODO: fix 'kr. 156.459,-' (see Akranes_10.txt')
-        manager = Manager()
-        input_text = self.get_very_long_text()
-        normalized = manager.normalize(input_text, split_sent=True)
-        result = manager.get_sentence_representation(normalized, ignore_tags=False)
-        print("no. of sentences: " + str(len(result)))
-        for sent in result:
-            print(sent)
-        #self.assertEqual(10, len(result))
 
     def test_normalize_html(self):
         #TODO: fix 'kr. 156.459,-' (see Akranes_10.txt')
         manager = Manager()
         input_text = self.get_html_string()
         normalized = manager.normalize(input_text, html=True, split_sent=True)
-        result = manager.get_sentence_representation(normalized, ignore_tags=False)
+        result = manager.get_normalized_sentence_representation(normalized, ignore_tags=False)
         print("no. of sentences: " + str(len(result)))
         for sent in result:
             print(sent)
         #self.assertEqual(10, len(result))
 
+    def test_percent(self):
+        manager = Manager()
+        input_text = '1,5-2,5%'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('eitt komma fimm til tvö komma fimm prósent', result_str)
 
-    def get_very_long_text(self):
-        with open('../Akranes_10.txt') as f:
+    def test_hyphen(self):
+        manager = Manager()
+        input_text = 'Blikar heppnir, KR-ingar óheppnir.'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        self.assertEqual('Blikar heppnir <sil> K R  <sil> ingar <sil> óheppnir <sentence>', result_str)
+        input_text = 'Evrópa (EFTA-ríkin)'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        # TODO: fix space issue in normalizer
+        self.assertEqual('Evrópa <sil> EFTA <sil> ríkin <sil> <sentence>', result_str)
+        # TODO: fix space issue in normalizer
+
+        input_text = 'EFTA-ríkin'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        # TODO: fix space issue in normalizer
+        self.assertEqual('EFTA  <sil> ríkin', result_str)
+        input_text = 'Evrópa (EFTA-ríkin)'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        # TODO: fix space issue in normalizer
+        self.assertEqual('Evrópa <sil> EFTA <sil> ríkin <sil> <sentence>', result_str)
+
+    def test_sport_results_time(self):
+        manager = Manager()
+        input_text = '100 metra bringusundi S14 þroskahamlaðra á 1:09,14 mínútu og var örskammt frá Íslandsmeti sínu ' \
+                     'í greininni sem er 1:09,01 mínúta.'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        print(result_str)
+        #self.assertEqual('hundrað metra bringusundi S fjórtán þroskahamlaðra á '
+        #            'einni núll níu komma fjórtán mínútu og var örskammt frá Íslandsmeti sínu í greininni sem er ein núll '
+        #            'níu komma núll ein mínúta.', result_str)
+
+    def test_born_dead(self):
+        manager = Manager()
+        input_text = 'Jón, f. 4. apríl 1927, d. 10. febrúar 2010.'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        self.assertEqual('Jón <sil> fæddur fjórða apríl nítján hundruð tuttugu og sjö <sil>'
+                         ' dáinn tíunda febrúar tvö þúsund og tíu <sentence>', result_str)
+
+    def test_digits(self):
+        manager = Manager()
+        input_text = 'Blálanga, óslægð 10.6.22 130,00 kr/kg. Er lagt til að ákvæðið gildi til 31. maí 2023.'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        print(result_str)
+       # self.assertEqual('Blálanga <sil> óslægð tíunda sjötta tuttugu og tvö hundrað og þrjátíu krónur'
+       #                  ' á kílóið <sentence> Er lagt til að ákvæðið gildi til þrítugasta og fyrsta'
+       #                  ' maí tvö þúsund tuttugu og þrjú <sentence>', result_str)
+
+    def test_year_digits(self):
+        manager = Manager()
+        input_text = 'síðan í mars 2010. mbl.is/​ Kristinn Magnússon'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        self.assertEqual('síðan í mars tvö þúsund og tíu <sil> m b l punktur i s <sil> Kristinn Magnússon <sentence>', result_str)
+
+    def test_year_digits_and_percent(self):
+        manager = Manager()
+        input_text = 'Í nýrri verðbólguspá Greiningar Íslandsbanka er því spáð að vísitala neysluverðs hækki um 1% í júní. ' \
+                    'Gangi spáin eftir mælist 12 mánaða verðbóla 8,4%, en hún hefur ekki mælst svo mikil síðan í mars ' \
+                    '2010. mbl.is/​ Kristinn Magnússon'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        self.assertEqual('Í nýrri verðbólguspá Greiningar Íslandsbanka er því spáð að vísitala neysluverðs hækki um eitt prósent í júní'
+                         ' <sentence> '
+                    'Gangi spáin eftir mælist tólf mánaða verðbóla átta komma fjögur prósent <sil> en hún hefur ekki mælst svo mikil síðan í mars '
+                    'tvö þúsund og tíu <sil> m b l punktur i s <sil> Kristinn Magnússon <sentence>',
+                result_str)
+
+    def test_dates(self):
+        manager = Manager()
+        input_text = '27. Mar 2020'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('tuttugasta og sjöunda mars tvö þúsund og tuttugu', result_str)
+        input_text = '27/10/20'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('tuttugasta og sjöunda tíunda tuttugu', result_str)
+        input_text = '27.3. 20'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('tuttugasta og sjöunda  þriðja tuttugu', result_str)
+        input_text = "27.3.'20"
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('tuttugasta og sjöunda  þriðja  tuttugu', result_str)
+
+    def test_corrupt_input(self):
+        manager = Manager()
+        input_text = 'Rekstrarfélag tekur þá 1.012.500 krónur í umsjónarlaun (meðaleign * 0,75%) = ((120 m.kr.+150 m.kr.)/2) * 0,75%.'
+        normalized = manager.normalize(input_text)
+        result_str = tokens.extract_normalized_text(normalized)
+        self.assertEqual('Rekstrarfélag tekur þá ein milljón tólf þúsund og fimm hundruð krónur í umsjónarlaun '
+                         'meðaleign núll komma sjötíu og fimm prósent jafnt og hundrað og tuttugu milljónir króna plús '
+                         'hundrað og fimmtíu milljónir króna tvö milljónir króna tvö núll komma sjötíu og fimm prósent', result_str)
+
+    def test_normalize_div(self):
+        manager = Manager()
+        test_map = self.get_test_map()
+        for elem in test_map:
+            normalized = manager.normalize(elem, split_sent=True)
+            norm_text = tokens.extract_normalized_text(normalized)
+            #self.assertEqual(norm_text, test_map[elem])
+
+    def test_normalize_hbs_text(self):
+        manager = Manager()
+        test_list = self.get_hbs_test_list()
+        for elem in test_list:
+            normalized = manager.normalize(elem, html=True, split_sent=True)
+            norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
+            print(norm_text)
+
+    def test_normalize_table(self):
+        manager = Manager()
+        input_text = self.get_table_text()
+        normalized = manager.normalize(input_text, split_sent=True)
+        norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        print(norm_text)
+
+    # Development 'tests' for inspection of the processing of long files, no assertions
+    """
+    def test_texts_from_html_file(self):
+        manager = Manager()
+        input_text = self.get_very_long_html_text()
+        normalized = manager.normalize(input_text, html=True, split_sent=True)
+        norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        print(norm_text)
+        norm_sent = tokens.extract_sentences_by_normalized(normalized, ignore_tags=False)
+        for sent in norm_sent:
+            print(sent)
+
+    def test_texts_from_file(self):
+        manager = Manager()
+        input_text = self.get_very_long_text()
+        normalized = manager.normalize(input_text, split_sent=True)
+        norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
+        print(norm_text)
+        norm_sent = tokens.extract_sentences_by_normalized(normalized, ignore_tags=False)
+        for sent in norm_sent:
+            print(sent)
+
+    def get_very_long_html_text(self):
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_2.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_3.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_4.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_5.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_6.html'
+        # input_file = 'data/HBS-2022-06-30/FST_Toflu_test_7.html'
+        input_file = 'data/HBS-2022-06-30/Textatalgervilsprofun_ur_bok_Fjarmal.html'
+        with open(input_file) as f:
             return f.read()
 
+    def get_very_long_text(self):
+        input_file = 'data/Akranes_10.txt'
+        with open(input_file) as f:
+            return f.read()
+    """
     def get_long_text1(self):
         return 'Eins var þess krafðist að bankasölunni yrði rift. Að fundinum stóðu UNG ASÍ, Jæja hópurinn, Ungir Píratar, ' \
                'Ungir sósíalistar og Ungir jafnaðarmenn. Svalt var á Austurvelli í dag en hiti í fundarmönnum. '
@@ -158,4 +347,76 @@ class TestNormalizer(unittest.TestCase):
                '(e. </span><em><span id="qitl_0596" class="sentence">sense of coherence).</span></em>' \
                '<span id="qitl_0597" class="sentence"> Sigrún Gunnarsdóttir hefur íslenskað skilgreiningu hugtaksins ' \
                'um tilfinningu fyrir samhengi í lífinu á eftirfarandi hátt: </span></p>'
+
+    def get_test_map(self):
+        test_map = {'Í Evrópu hélt lækkunin áfram þar sem markaðir lækkuðu á bilinu 1,5-2,5%' :
+                    'Í Evrópu hélt lækkunin áfram þar sem markaðir lækkuðu á bilinu eitt komma fimm til tvö komma fimm prósent',
+                    'Fríverslunarsamtaka Evrópu (EFTA-ríkin).' : 'Fríverslunarsamtaka Evrópu efta ríkin',
+                    '100 metra bringusundi S14 þroskahamlaðra á 1:09,14 mínútu og var örskammt frá Íslandsmeti sínu '
+                     'í greininni sem er 1:09,01 mínúta.' : 'hundrað metra bringusundi S fjórtán þroskahamlaðra á '
+                    'einni núll níu komma fjórtán mínútu og var örskammt frá Íslandsmeti sínu í greininni sem er ein núll '
+                    'níu komma núll ein mínúta.',
+                    'Foreldrar hans voru Jóna Einarsdóttir húsfreyja frá Túni á Eyrarbakka, f. 4. apríl 1927, d. 10. febrúar 2010.'  :
+                    'Foreldrar hans voru Jóna Einarsdóttir húsfreyja frá Túni á Eyrarbakka <sil> fædd fjórða apríl '
+                    'nítján hundruð tuttugu og sjö <sil> dáin tíunda febrúar tvö þúsund og tíu',
+                    'Blikar heppnir, KR-ingar óheppnir.' : 'Blikar heppnir <sil> K R ingar óheppnir',
+                    'Blálanga, óslægð 10.6.22 130,00 kr/kg. Er lagt til að ákvæðið gildi til 31. maí 2023.' :
+                    'Blálanga <sil> óslægð tíunda júní tuttugu og tvö hundrað og þrjátíu krónur á kílóið Er lagt til '
+                    'að ákvæðið gildi til þrítugasta og fyrsta maí tvö þúsund tuttugu og þrjú',
+                    'Í nýrri verðbólguspá Greiningar Íslandsbanka er því spáð að vísitala neysluverðs hækki um 1% í júní. '
+                    'Gangi spáin eftir mælist 12 mánaða verðbóla 8,4%, en hún hefur ekki mælst svo mikil síðan í mars '
+                    '2010. mbl.is/​ Kristinn Magnússon' :
+                    'Í nýrri verðbólguspá Greiningar Íslandsbanka er því spáð að vísitala neysluverðs hækki um eitt prósent í júní '
+                    'Gangi spáin eftir mælist tólf mánaða verðbóla átta komma fjögur prósent <sil> en hún hefur ekki mælst '
+                    'svo mikil síðan í mars tvö þúsund og tíu . m b l punktur is <sil> Kristinn Magnússon'}
+        return test_map
+
+    def get_hbs_test_list(self):
+        test_map = ['Prufuskjal fyrir talgervil',
+                        'Hljóðstafir - Stutt verkefnislýsing',
+                        'Tilgangur verkefnisins:',
+                        'Í nýrri verðbólguspá Greiningar Íslandsbanka er því spáð að vísitala neysluverðs hækki um 1% í júní. '
+                        'Gangi spáin eftir mælist 12 mánaða verðbóla 8,4%, en hún hefur ekki mælst svo mikil síðan í mars '
+                        '2010. mbl.is/​ Kristinn Magnússon',
+                        'Hugbúnaðarfyrirtækið ExMon Software hefur vaxið hratt.',
+                        'Blálanga, óslægð 10.6.22 130,00 kr/kg. Er lagt til að ákvæðið gildi til 31. maí 2023.',
+                        'Húrra!',
+                        'Blikar heppnir, KR-ingar óheppnir.',
+                        'Samtals 1.707 kg',
+                        'Róbert og Thelma komin í úrslit á HM.',
+                        'Hedwig Franziska Elisabeth Meyer fæddist í Rechterfeld í Niedersachsen-héraði í Þýskalandi 25.',
+                        'Foreldrar hans voru Jóna Einarsdóttir húsfreyja frá Túni á Eyrarbakka, f. 4. apríl 1927, d. 10. febrúar 2010.',
+                        '100 metra bringusundi S14 þroskahamlaðra á 1:09,14 mínútu og var örskammt frá Íslandsmeti sínu '
+                        'í greininni sem er 1:09,01 mínúta.',
+                        'Fríverslunarsamtaka Evrópu (EFTA-ríkin).',
+                        '„Ég hef verið á Skriðuklaustri frá 1999 og stýrt uppbyggingu á rithöfundasafni.',
+                        'Í Evrópu hélt lækkunin áfram þar sem markaðir lækkuðu á bilinu 1,5-2,5%.',
+                        '2. Veita útgefendum aðgang að kerfi þar sem þeir geta tekið texta og hljóð sem eru formuð '
+                        'eftir skilgreiningu HBS (sem byggir á alþjóðastöðlum) og sett saman sem aðgengilega bók með texta.',
+                        'Kaupa flokkunar- og pökkunarlínu frá Micro.',
+                        '13.6.22 Sæfinnur EA-058.',
+                        'Fríverslunarsamningi EFTA-ríkjanna og Úkraínu.',
+                        'Þá mun samruninn verða framkvæmdur á þeim grundvelli að SalMar er kaupandi allra hluta í NRS '
+                        'og eru greiddir 0,369 hlutir í SalMar fyrir hvern hlut í NRS.',
+                        'Hversu margar bækur þarf?',
+                        'Þurfa að vera öðruvísi, hvort sem er tungumál, hraði á lestri, gæði á hljóðfælum, allskonar '
+                        'edge-case, til að ná að tvíka og laga og gera sjálfvirkt.',
+                        'Gætum byrjað á Harry Potter',
+                        'Öll flækjustig bóka í upphafi eða byrja á einfaldari bókum?',
+                        'Kennslubækur með myndir, lestur ekki 100% línulaga, horizontal lesið, upp og niður allsstaðar '
+                        'í gegnum blaðsíðuna, neðstu greinina og síðan upp og niður. Láta jafnvel lesa bókina svona til að geta prófað í kerfinu.',
+                        'Nasdaq-vísitalan lækkaði um 4,7% í gær og Dow Jones um 3%. Lækkunin á heimsvísu hófst þegar '
+                        'markaðir voru opnaðir í Asíu, þar sem helstu hlutabréfavísitölur lækkuðu um rúmlega 3%.',
+                        'Við þurfum að setja upp miðlara á hljodstafir.is',
+                        'Server sem keyrir nýjasta LTS version af Ubuntu Server (20.04.3 LTS)'
+            ]
+        return test_map
+
+    def get_table_text(self):
+        return 'Prufuskjal fyrir talgervil. Leiðir til að lækka (-) eða auka (+) kostnað heimila. ' \
+               'Það er ódýrara að búa í litlu húsnæði en stóru, eiga húsnæði frekar en að leigja, búa í úthverfi ' \
+               'frekar en í miðbænum o.s.frv. Húsnæði. -. KOSTNAÐUR. +. Minna húsnæði. Stærra húsnæði. Eiga íbúð. ' \
+               'Leigja íbúð. Búa í úthverfi. Búa í miðbænum. Samgöngur. -. KOSTNAÐUR. +. Strætó / hjól. Eigin bíll. ' \
+               'Bílakaup með sparifé. Með bílaláni. Búa í miðbænum. Búa í úthverfi. Matur og hreinlætisvörur. -. ' \
+               'KOSTNAÐUR. +. Minna. Meira. Góð nýting. Sóun. Tómstundir. -. KOSTNAÐUR. +. Minna. Meira.'
 

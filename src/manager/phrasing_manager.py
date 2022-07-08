@@ -4,17 +4,25 @@ a list of NormalizedTokens, the same as the input from the normalizer_manager. T
 where it assumes a good place for a speech pause.
 """
 import os
-from .tokens import NormalizedToken, TagToken
+from .tokens import Token, TagToken
 from .tokens_manager import extract_tagged_text
 from phrasing.phrasing import Phrasing
 
 # used to replace punctuation in normalized text if we don't perform real phrasing analysis
 SIL_TAG = '<sil>'
 
+
 class PhrasingManager:
 
-    def is_punct(self, tok: NormalizedToken):
-        return tok.pos == '.' or tok.pos == ',' or tok.pos == 'pg' or tok.pos == 'pa' or tok.pos == 'pl' or tok.name == '/'
+    @staticmethod
+    def get_punct_index(tok: Token):
+        if isinstance(tok, TagToken):
+            return False
+        ind_arr = []
+        for i, normalized in enumerate(tok.normalized):
+            if normalized.pos in ['.', ',', 'pg', 'pa', 'pl'] or tok.name == '/':
+                ind_arr.append(i)
+        return ind_arr
 
     def phrase_text(self, tagged_text: str):
         MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -62,8 +70,12 @@ class PhrasingManager:
                 tag_tok = TagToken(phrased_list[phrase_index], token.token_index)
                 phrased_token_list.append(tag_tok)
                 # if we have a 'pure' punctuation token, do nothing further, but if the tag-token was added
-                # in between tokens as a result of phrasing, add the normalized token to the list as well
-                if not self.is_punct(token):
+                # in between tokens as a result of phrasing, remove the punctuation token from the normalized list and
+                # add the token to the list as well
+                for i, normalized in enumerate(token.normalized):
+                    if normalized.pos in ['.', ',', 'pg', 'pa', 'pl'] or token.name == '/':
+                        token.normalized.remove(normalized)
+                if len(token.normalized) > 0:
                     phrased_token_list.append(token)
                     phrase_index += 1
             elif not token.name:
@@ -72,27 +84,9 @@ class PhrasingManager:
                 phrased_token_list.append(token)
                 phrase_index -= 1
             else:
-                # check for 1 to n relation phrased vs. normalized
-                # e.g. 'fimm' vs. 'fimm fimm sjö <sil> einn tveir þrír fjórir'
-                normalized = token.name
-                norm_arr = normalized.split('<sil>')
-                if len(norm_arr) > 1:
-                    # we have a <sil> tag somewhere in the normalized name
-                    for str in norm_arr:
-                        norm_token = NormalizedToken(token.clean_token)
-                        norm_token.set_normalized(str)
-                        norm_token.set_index(token.token_index)
-                        norm_token.set_pos(token.pos)
-                        tag_tok = TagToken('<sil>', token.token_index)
-                        phrased_token_list.append(norm_token)
-                        phrased_token_list.append(tag_tok)
-                    # remove the last '<sil>' token
-                    phrased_token_list = phrased_token_list[:-1]
-                else:
-                    phrased_token_list.append(token)
-
-                phrase_index += len(normalized.split())
-                i += len(normalized.split())
+                phrased_token_list.append(token)
+                phrase_index += len(token.normalized) - 1
+                i += phrase_index
 
             phrase_index += 1
         return phrased_token_list
@@ -105,9 +99,27 @@ class PhrasingManager:
         for i, token in enumerate(normalized_tokens):
             if isinstance(token, TagToken):
                 phrased_token_list.append(token)
-            elif self.is_punct(token):
+                continue
+            punct_index = self.get_punct_index(token)
+            if punct_index:
+                token_added = False
                 tag_tok = TagToken(SIL_TAG, token.token_index)
-                phrased_token_list.append(tag_tok)
+                # most often the punctuation will be at the end of a token, it can however be an opening
+                # parenthesis, meaning that the tag token needs to be added before the core token
+                # if length of token.normalized is == 1, we only add a tag token.
+                # For tokens in parenthesis we can have two punctuation marks within one token, which we need to
+                # replace with a SIL-tag
+                for ind in punct_index:
+                    if len(token.normalized) > 1 and ind == 0:
+                        phrased_token_list.append(tag_tok)
+                        phrased_token_list.append(token)
+                        token_added = True
+                    elif len(token.normalized) > 1 and ind > 0:
+                        if not token_added:
+                            phrased_token_list.append(token)
+                        phrased_token_list.append(tag_tok)
+                    else:
+                        phrased_token_list.append(tag_tok)
             else:
                 phrased_token_list.append(token)
 
