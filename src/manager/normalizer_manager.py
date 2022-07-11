@@ -10,20 +10,33 @@ from typing import Tuple
 from .tokens import Normalized, TagToken
 from .tokens_manager import extract_sentences
 from .linked_tokens import LinkedTokens
-#production
+
 from regina_normalizer import abbr_functions
 from regina_normalizer import number_functions
-#local testing
-#from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import abbr_functions
-#from src.regina_normalizer.regina_normalizer_pkg.regina_normalizer import number_functions
 
 
 class NormalizerManager:
 
+    def __init__(self):
+        # the final list of normalized tokens after processing by the normalizerManager
+        self.normalized_tokens = []
+        # keep track of prenormalized and normalized elements during alignment of original token list and
+        # the normalized token list
+        self.current_prenorm = None
+        self.current_norm = None
+
+    def update_current(self):
+        if self.current_prenorm.next:
+            self.current_prenorm = self.current_prenorm.next
+        if self.current_norm.next:
+            if self.current_norm.visited:
+                self.current_norm = self.current_norm.next
+
     def normalize_token_list(self, token_list: list) -> list:
         """Normalizes the text represented by the token list,
         assembles a new list of Tokens and TagTokens, if any are in the token list or if tags are added
-        during normalization, each Token enriched by the normalizer results."""
+        during normalization, each Token enriched by the normalizer results.
+        The method to be called from the pipeline (textprocessing_manager)"""
 
         pre_normalized = []
         final_normalized = []
@@ -40,9 +53,9 @@ class NormalizerManager:
         norm_linked = LinkedTokens()
         norm_linked.init_from_norm_tuples(final_normalized)
 
-        normalized_tokens = self.align_normalized(token_list, pre_norm_linked, norm_linked)
+        self.align_normalized(token_list, pre_norm_linked, norm_linked)
 
-        return normalized_tokens
+        return self.normalized_tokens
 
     def normalize(self, text: str) -> Tuple:
         """
@@ -65,16 +78,17 @@ class NormalizerManager:
         :param text: the text to normalize
         :return: two lists of tuples, from both normalizing steps
         """
-        abbr_sent = abbr_functions.replace_abbreviations(text, "other")
-        prenorm_tuples = self.extract_prenorm_tuples(abbr_sent, text)
-        expanded_abbr = ' '.join(abbr_sent)
-        normalized = number_functions.handle_sentence(expanded_abbr.strip(), "other")
+        prenormalized = abbr_functions.replace_abbreviations(text, "other")
+        prenorm_tuples = self.extract_prenorm_tuples(prenormalized, text.split())
+        expanded_abbr = ' '.join(prenormalized).strip()
+        normalized = number_functions.handle_sentence(expanded_abbr, "other")
 
         return prenorm_tuples, normalized
 
-    def extract_prenorm_tuples(self, prenorm_arr, sent):
+    def extract_prenorm_tuples(self, prenorm_arr: list, sent_arr: list) -> list:
         """
-        Find changes in prenorm_sent compared to sent and create tuples with original token and expanded abbreviation.
+        Find changes in prenorm_sent compared to input sent and create tuples with original token and expanded
+        abbreviation.
         Example:
         sent == Það voru t.d. 5 atriði
         prenorm_sent == Það voru til dæmis 5 atriði
@@ -85,8 +99,6 @@ class NormalizerManager:
         :return: A list of tuples containing original token and expanded version from the pre-normalizer
         """
         norm_tuples = []
-        sent_arr = sent.split()
-
         diff = difflib.ndiff(sent_arr, prenorm_arr)
         # a token from sent_arr not occurring in the prenorm_arr,
         # store while processing the same/near positions in prenorm_arr
@@ -114,13 +126,14 @@ class NormalizerManager:
 
         return norm_tuples
 
-    def extract_tuples(self, keys, values):
+    def extract_tuples(self, keys: list, values: list) -> list:
         """Extract tuples from keys and values. Most of the time we will only have one element in the
         keys-array, and will then simply put a joined string from the values array as the second tuple
         element, regardless of the size of the values array. If the keys array contains more than one
         element, we first check if both arrays are equally long and we thus have a one on one mapping,
         if not, we have to use some heuristics to attach the prenormalized values to the original keys,
-        namely to check if the first letters of keys/values match, indicating an expanded abbreviation."""
+        namely to check if the first letters of keys/values match, indicating an expanded abbreviation.
+        """
         tup_list = []
         if len(keys) == 1:
             tup_list.append((keys[0].strip(), ' '.join(values).strip()))
@@ -154,7 +167,7 @@ class NormalizerManager:
 
         return tup_list
 
-    def align_normalized(self, token_list, pre_normalized, final_normalized):
+    def align_normalized(self, token_list: list, pre_normalized: LinkedTokens, final_normalized: LinkedTokens):
         """Use all three input lists to enrich the tokens in token_list with normalized representations
         of the original tokens. Return a new list containing the same tokens as in token_list, enriched
         with normalized elements, and possibly added TagTokens, if created from normalized results.
@@ -166,126 +179,126 @@ class NormalizerManager:
         :param final_normalized: a linked list of normalized nodes (final results from the normalizer)
         :return a list of the tokens in token_list, enriched by normalized elements
         """
-        normalized_tokens = []
+        self.normalized_tokens = []
+        self.current_prenorm = pre_normalized.head
+        self.current_norm = final_normalized.head
         token_list_index = 0
-        current_prenorm = pre_normalized.head
-        current_norm = final_normalized.head
-        # iterate through the original tokens
+        # iterate through the original tokens and extend each token with its normalized version, if exists
         while token_list_index < len(token_list):
             tok = token_list[token_list_index]
             if isinstance(tok, TagToken):
-                normalized_tokens.append(tok)
+                self.normalized_tokens.append(tok)
                 token_list_index += 1
                 continue
             else:
-                tokenized_token = ' '.join(tok.tokenized)
-                if not tokenized_token:
+                if not tok.tokenized:
                     # The original token might have been deleted during the cleaning step, so no
                     # further processing will have taken place. We keep the original token in the list for the record
-                    normalized_tokens.append(tok)
+                    self.normalized_tokens.append(tok)
                     # don't increment normalized lists in this case, they will not have a corresponding entry
                     token_list_index += 1
                     continue
-
-                # The original (tokenized) token is the same as the input for the final normalizing step,
-                # but the normalized version contains more than one token:
-                # ['2010'] vs. (2021, tvö þúsund tuttugu og eitt, ta)
-                elif tokenized_token == current_norm.token and len(current_norm.processed.split()) > 1:
-                    normalized_arr = []
-                    for word in current_norm.processed.split():
-                        normalized_arr = self.extend_norm_arr(current_norm, normalized_arr, word)
-                    tok.set_normalized(normalized_arr)
-                    normalized_tokens.append(tok)
-                    current_norm.visited = True
-
-                # Same as last step, but the normalized version is only one token as well
-                # ['10'] vs. (10, tíu, ta)
-                # OR:
-                # Was there a change during pre-normalization? Compare the original token with the prenorm input
-                # and the prenorm output with the normalized input
-                # ['-'] vs. (-,til) and (-,til) vs. (til, til)
-                # This check also holds for elements that do not change through normalization, we have the same
-                # original token as the input to the normalizer and can add the normalized version regardless
-                # if it has changed the token or not
-                elif tokenized_token == current_norm.token or (
-                        tokenized_token == current_prenorm.token and current_prenorm.processed == current_norm.token):
-                    word = current_norm.processed.strip()
-                    normalized_arr = self.extend_norm_arr(current_norm, [], word)
-                    tok.set_normalized(normalized_arr)
-                    normalized_tokens.append(tok)
-                    current_norm.visited = True
-
-                # Did the pre normalization step expand an abbreviation to more tokens? This means that the input
-                # for the final normalizing has more tokens than the original (for the example: 3 instead of 1)
-                # Iterate through the tokens in the prenorm-results and the corresponding elements in the normalized list.
-                # ['m/s'] vs. (m/s, metrar á sekúndu)
-                elif tokenized_token == current_prenorm.token and len(current_prenorm.processed.split()) > 1:
-                    normalized_arr = []
-                    for j, word in enumerate(current_prenorm.processed.split()):
-                        if current_norm.token == word:
-                            norm_word = current_norm.processed
-                            normalized_arr = self.extend_norm_arr(current_norm, normalized_arr, norm_word)
-                            if current_norm.next:
-                                current_norm.visited = True
-                                current_norm = current_norm.next
-                        else:
-                            break
-                    tok.set_normalized(normalized_arr)
-                    normalized_tokens.append(tok)
-
-                # Did the tokenizer split up the original token, so the original token tokenized spans more than
-                # one entry in pre_normalized list?
-                # original token: '10-12', tokenized: ['10','-','12'], tokenized_token: '10 - 12'
-                # prenorm: (10, 10), (-, til), (12, 12)
-                elif tokenized_token.startswith(current_prenorm.token):
-                    normalized_arr = []
-                    original_arr = tokenized_token.split()
-                    while original_arr:
-                        if current_norm.visited:
-                            break
-                        # did the pre-norm process split up the token in tok.tokenized?
-                        no_prenorm_tokens = len(current_prenorm.processed.split())
-                        original_tok_rest = ''.join(original_arr)
-                        original_arr = self.update_original_arr(current_prenorm, original_arr)
-                        pre_norm_arr = current_prenorm.processed.split()
-                        pre_norm_str = ''.join(pre_norm_arr)
-                        if original_tok_rest.startswith(pre_norm_str) or current_prenorm.processed.startswith(current_norm.token):
-                            for k in range(no_prenorm_tokens):
-                                norm_word = current_norm.processed.strip()
-                                current_norm.visited = True
-                                normalized_arr = self.extend_norm_arr(current_norm, normalized_arr, norm_word)
-                                if current_norm.next:
-                                    current_norm = current_norm.next
-                                else:
-                                    break
-                        else:
-                            # We should not get here!
-                            print('original_token: ' + tokenized_token)
-                            print('prenormalized: ' + current_prenorm.processed)
-
-                        if current_prenorm.next:
-                            current_prenorm = current_prenorm.next
-                        if current_norm.visited and current_norm.next:
-                            current_norm = current_norm.next
-
-                    tok.set_normalized(normalized_arr)
-                    normalized_tokens.append(tok)
-                    current_prenorm = current_prenorm.previous
+                else:
+                    self.process_token(tok)
 
             token_list_index += 1
-            if current_prenorm.next:
-                current_prenorm = current_prenorm.next
-            if current_norm.next:
-                if current_norm.visited:
-                    current_norm = current_norm.next
+            self.update_current()
 
-        return normalized_tokens
+    def process_token(self, token):
+        """Processes the 'token' and enriches with normalized version. Updates the normalized_tokens list.
+        """
+        # init several variables for more readable code below
+        tokenized_token = ' '.join(token.tokenized)
+        token_is_prenorm_input = (tokenized_token == self.current_prenorm.token)
+        token_is_norm_input = (tokenized_token == self.current_norm.token)
+        prenorm_is_norm_input = (self.current_prenorm.processed == self.current_norm.token)
 
-    def update_original_arr(self, current_prenorm, original_arr):
-        """Remove the elements occurring in the current_prenorm tokens from the original array to ensure
+        # The original (tokenized) token is the same as the input for the final normalizing step,
+        # the normalized version contains one ore more tokens:
+        # ['2010'] vs. (2021, tvö þúsund tuttugu og eitt, ta)
+        # ['10'] vs. (10, tíu, ta)
+        # OR:
+        # Was there a change during pre-normalization? Compare the original token with the prenorm input
+        # and the prenorm output with the normalized input
+        # ['-'] vs. (-,til) and (-,til) vs. (til, til)
+        # This check also holds for elements that do not change through normalization, we have the same
+        # original token as the input to the normalizer and can add the normalized version regardless
+        # if it has changed the token or not
+        if token_is_norm_input or (token_is_prenorm_input and prenorm_is_norm_input):
+            normalized_arr = []
+            for word in self.current_norm.processed.split():
+                normalized_arr = self.extend_norm_arr(self.current_norm, normalized_arr, word)
+            self.update_alignment(normalized_arr, token, set_visited=True)
+
+        # Did the pre normalization step expand an abbreviation to more tokens? This means that the input
+        # for the final normalizing has more tokens than the original (for the example: 3 instead of 1)
+        # Iterate through the tokens in the prenorm-results and the corresponding elements in the normalized list.
+        # ['m/s'] vs. (m/s, metrar á sekúndu)
+        elif token_is_prenorm_input and len(self.current_prenorm.processed.split()) > 1:
+            normalized_arr = []
+            for j, word in enumerate(self.current_prenorm.processed.split()):
+                if self.current_norm.token == word:
+                    norm_word =self.current_norm.processed
+                    normalized_arr = self.extend_norm_arr(self.current_norm, normalized_arr, norm_word)
+                    if self.current_norm.next:
+                       self.current_norm.visited = True
+                       self.current_norm = self.current_norm.next
+                else:
+                    break
+            self.update_alignment(normalized_arr, token)
+
+        # Did the tokenizer split up the original token, so the original token tokenized spans more than
+        # one entry in pre_normalized list?
+        # original token: '10-12', tokenized: ['10','-','12'], tokenized_token: '10 - 12'
+        # prenorm: (10, 10), (-, til), (12, 12)
+        elif tokenized_token.startswith(self.current_prenorm.token):
+            normalized_arr = self.process_split_token(token)
+            self.update_alignment(normalized_arr, token)
+            self.current_prenorm = self.current_prenorm.previous
+
+    def process_split_token(self, token):
+        """Process a token that was split up by the tokenizer and thus has more than one input elements
+        to the pre-normalizer"""
+
+        normalized_arr = []
+        original_arr = token.tokenized
+        while original_arr:
+            if self.current_norm.visited:
+                break
+            # did the pre-norm process split up the token in tok.tokenized?
+            no_prenorm_tokens = len(self.current_prenorm.processed.split())
+            original_tok_rest = ''.join(original_arr)
+            original_arr = self.update_original_arr(original_arr)
+            pre_norm_arr = self.current_prenorm.processed.split()
+            pre_norm_str = ''.join(pre_norm_arr)
+            if original_tok_rest.startswith(pre_norm_str) or self.current_prenorm.processed.startswith(
+                    self.current_norm.token):
+                for k in range(no_prenorm_tokens):
+                    norm_word = self.current_norm.processed.strip()
+                    self.current_norm.visited = True
+                    normalized_arr = self.extend_norm_arr(self.current_norm, normalized_arr, norm_word)
+                    if self.current_norm.next:
+                        self.current_norm = self.current_norm.next
+                    else:
+                        break
+            else:
+                # We should not get here!
+                print('original_token: ' + token.name)
+                print('prenormalized: ' + self.current_prenorm.processed)
+
+            self.update_current()
+        return normalized_arr
+
+    def update_alignment(self, normalized_arr, token, set_visited=False):
+        token.set_normalized(normalized_arr)
+        self.normalized_tokens.append(token)
+        self.current_norm.visited = set_visited
+
+    def update_original_arr(self, original_arr):
+        """Remove the elements occurring in theself.current_prenorm tokens from the original array to ensure
         we are not going ahead of the original token with the normalized elements. When the original_arr
-        is empty, we stop the current process and move on to the next token."""
-        increment_for_orig_arr = len(current_prenorm.token.split())
+        is empty, we stop theself.current process and move on to the next token."""
+        increment_for_orig_arr = len(self.current_prenorm.token.split())
         if increment_for_orig_arr < len(original_arr):
             original_arr = original_arr[increment_for_orig_arr:]
         else:
