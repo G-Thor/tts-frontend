@@ -4,9 +4,6 @@
 [submodule "src/regina_normalizer"]
 	path = src/regina_normalizer
 	url = https://github.com/grammatek/regina_normalizer
-[submodule "src/GreynirCorrect4LT"]
-	path = src/GreynirCorrect4LT
-	url = https://github.com/grammatek/GreynirCorrect4LT
 [submodule "src/ice-g2p"]
 	path = src/ice-g2p
 	url = https://github.com/grammatek/ice-g2p

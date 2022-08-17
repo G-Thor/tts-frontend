@@ -1,4 +1,4 @@
-from reynir_correct.tools import tts_frontend
+from .interfaces import reynir_correct
 from .tokens import Token, TagToken
 from .tokens_manager import extract_sentences_by_normalized
 from .settings import SENTENCE_TAG
@@ -9,14 +9,14 @@ class SpellCheckerManager:
     Replaces normalized text with spell corrected, if applicable.
     """
     def spellcheck(self, text):
-        checked = tts_frontend.tts_spellcheck(text)
+        checked = reynir_correct.tts_spellcheck(text)
         print(checked)
 
     def spellcheck_token_list(self, tokens: list) -> list:
         sentences = extract_sentences_by_normalized(tokens)
         checked_sentences = []
         for sent in sentences:
-            checked_sentences.extend(tts_frontend.tts_spellcheck(sent).split())
+            checked_sentences.extend(reynir_correct.tts_spellcheck(sent).split())
 
         spellchecked_normalized = []
         for token in tokens:
