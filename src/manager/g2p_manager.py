@@ -51,7 +51,7 @@ class G2PManager:
         base_token.set_normalized([Normalized(word, 'n')])
         return base_token
 
-    def transcribe(self, token_list: list) -> list:
+    def transcribe(self, token_list: list, cmu: bool=False) -> list:
         """Transcribes the tokens in token_list and returns a list of
         transcribedTokens, keeps the tagTokens already in the input token_list, except for
         the lang-SSML tag, which is used to transcribe English words using English g2p"""
@@ -67,7 +67,7 @@ class G2PManager:
                     is_icelandic = False
                     transcribed_list.append(TagToken(SIL_TOKEN, token.token_index))
                     normalized = self.generate_normalized(ENGLISH, token.token_index)
-                    transcribed = self.g2p.transcribe(ENGLISH)
+                    transcribed = self.g2p.transcribe(ENGLISH, cmu=cmu)
                     normalized.set_transcribed([transcribed])
                     transcribed_list.append(normalized)
                     transcribed_list.append(TagToken(SIL_TOKEN, token.token_index))
@@ -91,7 +91,7 @@ class G2PManager:
                                     transcribed = word.strip()
                                 else:
                                     word = ''.join(c for c in word.lower() if c in ALPHABET or c in ENGLISH_ALPHABET)
-                                    transcribed = self.g2p.transcribe(word.lower().strip(), icelandic=is_icelandic)
+                                    transcribed = self.g2p.transcribe(word.lower().strip(), icelandic=is_icelandic, cmu=cmu)
                                 transcribed_arr.append(transcribed.strip())
                 token.set_transcribed(transcribed_arr)
                 transcribed_list.append(token)
