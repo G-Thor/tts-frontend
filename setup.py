@@ -108,7 +108,7 @@ setup(
     install_requires=[
         'text-cleaner @ git+https://github.com/grammatek/text-cleaner@34b9c130a39142e83ced2383e0b65d66a27c53d9',
         'regina_normalizer @ git+https://github.com/grammatek/regina_normalizer@01da6cb4a2e6ba8e5935cd1339723c17526ad820',
-        'reynir-correct @ git+https://github.com/grammatek/GreynirCorrect4LT@b0601e451ef06290afef09a8af18b581ca7ce6ce',
+        'reynir-correct @ git+https://github.com/grammatek/GreynirCorrect4LT@af29c41a58f64dbbe5e2c2610c0d426338c3048f',
         'ice-g2p @ git+https://github.com/grammatek/ice-g2p@bc145b77b92cf1f05edd69fc54f7cced8877f471',
         'phrasing-tool @ git+https://github.com/grammatek/phrasing-tool@50537e5880816340dce8b63ebc7a86dd3407cbeb'
     ],
