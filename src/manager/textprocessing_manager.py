@@ -148,7 +148,7 @@ class Manager:
         phrased = self.phrasing.phrase_token_list(normalized)
         return phrased
 
-    def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False, split_sent=True) -> list:
+    def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False, split_sent=True, cmu: bool=False) -> list:
         """
         Transcribes 'text' using the SAMPA phonetic alphabet.
 
@@ -169,7 +169,7 @@ class Manager:
         if spellcheck:
             normalized = self.spellchecker.spellcheck_token_list(normalized)
 
-        transcribed = self.g2p.transcribe(normalized)
+        transcribed = self.g2p.transcribe(normalized, cmu=cmu)
         return transcribed
 
     #######################################################################################################
