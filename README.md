@@ -1,4 +1,3 @@
-Badges
 
 # TTS Textprocessing Pipeline for Icelandic
 
@@ -10,7 +9,6 @@ The TTS frontend pipeline makes seamless text preprocessing for TTS using differ
 
 ## Prerequisites and setup
 
-This project is in a development state, as the subodules as well, and thus a PyPI package does not yet exist.
 You can install the project either by cloning the repository and install from the project root, or you can install
 directly from github. Assuming you have Python > 3.6 installed:
 
@@ -35,11 +33,118 @@ $ # make sure you are in your project folder with the virtual environment activa
 installation to fail (see unresolved issue here: https://github.com/pytorch/fairseq/issues/3535)
 
 ## Usage
-How to use the project
+
+The text processing pipeline can be run from input text to transcribed output, or partly run, e.g. only
+normalizing the input. The text_processor returns a list of tokens, including all information collected on 
+each token, including token index and character spans from original text. Examples (for further options, study 
+[textprocessing_manager.py](https://github.com/grammatek/tts-frontend/blob/master/src/manager/textprocessing_manager.py)): 
+
+```
+from manager.textprocessing_manager import Manager
+
+text_processor = Manager()
+input_text = 'Sunnan 4 m/s'
+normalized_as_token_list = text_processor.normalize(input_text)
+normalized_as_string = text_processor.get_string_representation_normalized(normalized_as_token_list) 
+```
+
+Output:
+
+```
+input_text: 'Sunnan 4 m/s'
+normalized_as_token_list:
+
+Normalized: [
+Token:
+Original: Sunnan, Clean: Sunnan,
+Tokenized: ['Sunnan'],
+Normalized: [Sunnan, nhen]
+Transcribed: []
+index: 0, 0, 6
+, 
+Token:
+Original: 4, Clean: 4,
+Tokenized: ['4'],
+Normalized: [fjórir, ta]
+Transcribed: []
+index: 1, 7, 8
+, 
+Token:
+Original: m/s, Clean: m/s,
+Tokenized: ['m/s'],
+Normalized: [metrar, nkfn, á, af, sekúndu, nveþ]
+Transcribed: []
+index: 2, 9, 12
+, TagToken(<sentence>, 3)]
+
+normalized_as_string: 'Sunnan fjórir metrar á sekúndu'
+
+```
+
+Full pipeline with g2p:
+
+```
+from manager.textprocessing_manager import Manager
+
+text_processor = Manager()
+input_text = 'Sunnan 4 m/s'
+transcribed_as_token_list = text_processor.transcribe(input_text)
+transcribed_as_string = text_processor.get_string_representation_transcribed(transcribed_as_token_list)
+```
+
+Output:
+
+```
+input_text: 'Sunnan 4 m/s'
+transcribed_as_token_list:
+
+Transcribed: [
+Token:
+Original: Sunnan, Clean: Sunnan,
+Tokenized: ['Sunnan'],
+Normalized: [Sunnan, nhen]
+Transcribed: ['s Y n a n']
+index: 0, 0, 6
+, 
+Token:
+Original: 4, Clean: 4,
+Tokenized: ['4'],
+Normalized: [fjórir, ta]
+Transcribed: ['f j ou: r I r']
+index: 1, 7, 8
+, 
+Token:
+Original: m/s, Clean: m/s,
+Tokenized: ['m/s'],
+Normalized: [metrar, nkfn, á, af, sekúndu, nveþ]
+Transcribed: ['m E: t r a r', 'au:', 's E: k u n t Y']
+index: 2, 9, 12
+, TagToken(<sentence>, 3)]
+
+transcribed_as_string: s Y n a n f j ou: r I r m E: t r a r au: s E: k u n t Y
+```
+
 
 ## Credits
-Máltækniáætlun, devleopers of submodules
+The submodules Phrasing-Tool and Regina-Normalizer were forked from the [Reykjavik University
+LVL](https://lvl.ru.is/) Github repository, where the original development was done.
 
-## License
+The submodule GreynirCorrect4LT was forked from [Miðeind's GreynirCorrect](https://github.com/mideind/GreynirCorrect)
+spell and grammar checker.
+
+The IceNLP package as well as the ABL-tagger used in the project were developed at RU LVL.
+
+## License and copyright
+
+![Grammatek](grammatek-logo-small.png)](https://www.grammatek.com)
+
+Copyright © 2022 Grammatek ehf.
+
+This software is developed under the auspices of the Icelandic Government 5-Year Language Technology Program, described
+[here](https://www.stjornarradid.is/lisalib/getfile.aspx?itemid=56f6368e-54f0-11e7-941a-005056bc530c) and
+[here](https://clarin.is/media/uploads/mlt-en.pdf) (English).
+
+This software is licensed under the [Apache License](LICENSE)
 
 ## Contributing / Contact
+You can contribute to this project by forking it, creating a private branch and opening a new [pull request](https://github.com/grammatek/tts-frontend/pulls).  
