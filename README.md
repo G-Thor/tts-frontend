@@ -22,6 +22,12 @@ $ source <path/to/your/venv>/bin/activate
 (venv) $ pip install -e .
 ```
 
+If you run into ``wheel`` error, install ``wheel`` before you install this project:
+
+```
+$ (venv) pip install wheel
+$ (venv) pip install -e .
+```
 Install for use in an existing project
 
 ```
