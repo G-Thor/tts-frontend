@@ -286,7 +286,6 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
     set_step_back_counter = False
     while clean_counter < len(clean_token_list):
         if set_step_back_counter:
-            clean_counter -= 1
             set_step_back_counter = False
         token = clean_token_list[clean_counter]
         if tokenized_counter >= len(token_list):
@@ -311,6 +310,7 @@ def align_tokens(clean_token_list: list, tokenized: list, split_sent: bool=False
             # let's not step back if the token does not have a clean version, probably some symbol deleted by the cleaner
             if token.name != '.':
                 set_step_back_counter = True
+                clean_counter -= 1
         else:
             non_splitted_token = token_list[tokenized_counter]
             tokenized_arr = [non_splitted_token]
