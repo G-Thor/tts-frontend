@@ -1,22 +1,91 @@
-int_cols_thousand = ['thousands', 'hundreds','dozens', 'ones']
+int_cols_thousand = ["thousands", "hundreds", "dozens", "ones"]
 
-int_cols_million = ['hundred thousands','ten thousands','thousands', 'hundreds','dozens', 'ones']
+int_cols_million = [
+    "hundred thousands",
+    "ten thousands",
+    "thousands",
+    "hundreds",
+    "dozens",
+    "ones",
+]
 
-int_cols_big = ['hundred billions', 'ten billions','billions', 'hundred millions','ten millions','millions',
-                   'hundred thousands','ten thousands','thousands', 'hundreds','dozens', 'ones']
+int_cols_big = [
+    "hundred billions",
+    "ten billions",
+    "billions",
+    "hundred millions",
+    "ten millions",
+    "millions",
+    "hundred thousands",
+    "ten thousands",
+    "thousands",
+    "hundreds",
+    "dozens",
+    "ones",
+]
 
-decimal_cols_small = ['hundreds','dozens', 'ones', 'point_only', 'points', 'points_tens', 'points_dozens', 'points_ones']
+decimal_cols_small = [
+    "hundreds",
+    "dozens",
+    "ones",
+    "point_only",
+    "points",
+    "points_tens",
+    "points_dozens",
+    "points_ones",
+]
 
-decimal_cols_thousand = ['thousands', 'hundreds','dozens', 'ones','points','point2','point3','point4',
-                           'point5','point6','point7','point8','point9','point10']
+decimal_cols_thousand = [
+    "thousands",
+    "hundreds",
+    "dozens",
+    "ones",
+    "points",
+    "point2",
+    "point3",
+    "point4",
+    "point5",
+    "point6",
+    "point7",
+    "point8",
+    "point9",
+    "point10",
+]
 
-decimal_cols_big= ['hundred billions', 'ten billions','billions', 'hundred millions','ten millions','millions',
-                    'hundred thousands','ten thousands','thousands', 'hundreds','dozens', 'ones','points',
-                    'point2','point3','point4','point5','point6','point7','point8','point9','point10']
+decimal_cols_big = [
+    "hundred billions",
+    "ten billions",
+    "billions",
+    "hundred millions",
+    "ten millions",
+    "millions",
+    "hundred thousands",
+    "ten thousands",
+    "thousands",
+    "hundreds",
+    "dozens",
+    "ones",
+    "points",
+    "point2",
+    "point3",
+    "point4",
+    "point5",
+    "point6",
+    "point7",
+    "point8",
+    "point9",
+    "point10",
+]
 
 
 # time, timedigit, sport
-time_sport_cols = ['first_ten', 'first_one','between_teams','second_ten', 'second_one']
+time_sport_cols = [
+    "first_ten",
+    "first_one",
+    "between_teams",
+    "second_ten",
+    "second_one",
+]
 
 ordinal_thousand_ptrn = r"^([1-9]\.?\d{3}|[1-9]\d{0,2}|0)\.$"
 ordinal_million_ptrn = r"^[1-9]\d{0,2}\.?\d{3}\.$"
@@ -44,59 +113,64 @@ roman_letters_ptrn = r"[IVXLCDM]{4,20}"
 
 symbol_ptrn = r"^[^A-ZÁÐÉÍÓÚÝÞÆÖa-záðéíóúýþæö\d]$"
 
-digit_numbers = [('0', ' núll'),
-                 ('1', ' einn'),
-                 ('2', ' tveir'),
-                 ('3', ' þrír'),
-                 ('4', ' fjórir'),
-                 ('5', ' fimm'),
-                 ('6', ' sex'),
-                 ('7', ' sjö'),
-                 ('8', ' átta'),
-                 ('9', ' níu'),
-                 (r'\-', ' <sil>'),
-                 (r'\+', ' plús'),
-                 (r'\.', ' punktur'),
-                 (r'\*', 'sinnum'),
-                 # TODO: is a colon ever read as 'tvípunktur' in a string of digits?
-                 # When representing time, it is not read. Other examples?
-                 #(':', ' tvípunktur'),
-                 (':', ''),
-                 (',', ' komma'),
-                 (r'\/', ' deilt með')]
+digit_numbers = [
+    ("0", " núll"),
+    ("1", " einn"),
+    ("2", " tveir"),
+    ("3", " þrír"),
+    ("4", " fjórir"),
+    ("5", " fimm"),
+    ("6", " sex"),
+    ("7", " sjö"),
+    ("8", " átta"),
+    ("9", " níu"),
+    (r"\-", " <sil>"),
+    (r"\+", " plús"),
+    (r"\.", " punktur"),
+    (r"\*", "sinnum"),
+    # TODO: is a colon ever read as 'tvípunktur' in a string of digits?
+    # When representing time, it is not read. Other examples?
+    # (':', ' tvípunktur'),
+    (":", ""),
+    (",", " komma"),
+    (r"\/", " deilt með"),
+]
 
-digits_ord = [('0', 'núllta'),
-                 ('1', 'fyrsta'),
-                 ('2', 'annan'),
-                 ('3', 'þriðja'),
-                 ('4', 'fjórða'),
-                 ('5', 'fimmta'),
-                 ('6', 'sjötta'),
-                 ('7', 'sjöunda'),
-                 ('8', 'áttunda'),
-                 ('9', 'níunda')]
+digits_ord = [
+    ("0", "núllta"),
+    ("1", "fyrsta"),
+    ("2", "annan"),
+    ("3", "þriðja"),
+    ("4", "fjórða"),
+    ("5", "fimmta"),
+    ("6", "sjötta"),
+    ("7", "sjöunda"),
+    ("8", "áttunda"),
+    ("9", "níunda"),
+]
 
-wlink_numbers = [('0', 'núll'),
-                 ('1', 'einn'),
-                 ('2', 'tveir'),
-                 ('3', 'þrír'),
-                 ('4', 'fjórir'),
-                 ('5', 'fimm'),
-                 ('6', 'sex'),
-                 ('7', 'sjö'),
-                 ('8', 'átta'),
-                 ('9', 'níu'),
-                 (r'\.', 'punktur'),
-                 (r'\-', 'bandstrik'),
-                 (r'\/', 'deilt með'),
-                 ('_', 'undirstrik'),
-                 ('@', 'hjá'),
-                 (':', 'tvípunktur'),
-                 ('=', 'jafnt og'),
-                 (r'\*', 'sinnum'),
-                 (r'\?', 'spurningarmerki'),
-                 ('!', 'upphrópunarmerki'),
-                 ('&', 'og'),
-                 ('%', 'prósent'),
-                 ('#', 'myllumerki')]
-
+wlink_numbers = [
+    ("0", "núll"),
+    ("1", "einn"),
+    ("2", "tveir"),
+    ("3", "þrír"),
+    ("4", "fjórir"),
+    ("5", "fimm"),
+    ("6", "sex"),
+    ("7", "sjö"),
+    ("8", "átta"),
+    ("9", "níu"),
+    (r"\.", "punktur"),
+    (r"\-", "bandstrik"),
+    (r"\/", "deilt með"),
+    ("_", "undirstrik"),
+    ("@", "hjá"),
+    (":", "tvípunktur"),
+    ("=", "jafnt og"),
+    (r"\*", "sinnum"),
+    (r"\?", "spurningarmerki"),
+    ("!", "upphrópunarmerki"),
+    ("&", "og"),
+    ("%", "prósent"),
+    ("#", "myllumerki"),
+]

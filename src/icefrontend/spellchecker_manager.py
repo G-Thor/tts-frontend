@@ -3,11 +3,13 @@ from .tokens import Token, TagToken
 from .tokens_manager import extract_sentences_by_normalized
 from .settings import SENTENCE_TAG
 
+
 class SpellCheckerManager:
     """
     Connects with the GreynirCorrect4LT package to spell correct normalized text.
     Replaces normalized text with spell corrected, if applicable.
     """
+
     def spellcheck(self, text):
         checked = tts_spellcheck(text)
         print(checked)

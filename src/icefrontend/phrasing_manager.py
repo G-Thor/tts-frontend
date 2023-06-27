@@ -9,18 +9,17 @@ from .tokens_manager import extract_tagged_text
 from phrasing.phrasing import Phrasing
 
 # used to replace punctuation in normalized text if we don't perform real phrasing analysis
-SIL_TAG = '<sil>'
+SIL_TAG = "<sil>"
 
 
 class PhrasingManager:
-
     @staticmethod
     def get_punct_index(tok: Token):
         if isinstance(tok, TagToken):
             return False
         ind_arr = []
         for i, normalized in enumerate(tok.normalized):
-            if normalized.pos in ['.', ',', 'pg', 'pa', 'pl'] or tok.name == '/':
+            if normalized.pos in [".", ",", "pg", "pa", "pl"] or tok.name == "/":
                 ind_arr.append(i)
         return ind_arr
 
@@ -28,19 +27,19 @@ class PhrasingManager:
         CWD = os.getcwd()
         MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
         PROJECT_ROOT, tail = os.path.split(MANAGER_PROJECT_ROOT)
-        os.chdir(PROJECT_ROOT + '/icefrontend/IceNLP/bat/iceparser')
-        print('PROJECT_ROOT: ' + PROJECT_ROOT)
-        with open('tagged_tmp.txt', 'w') as f:
+        os.chdir(PROJECT_ROOT + "/icefrontend/IceNLP/bat/iceparser")
+        print("PROJECT_ROOT: " + PROJECT_ROOT)
+        with open("tagged_tmp.txt", "w") as f:
             f.write(tagged_text)
-        comm = './iceparser.sh -i tagged_tmp.txt -o ../../../parsed_tmp.txt'
+        comm = "./iceparser.sh -i tagged_tmp.txt -o ../../../parsed_tmp.txt"
         os.system(comm)
-        os.remove('tagged_tmp.txt')
+        os.remove("tagged_tmp.txt")
         os.chdir(PROJECT_ROOT)
-        with open(PROJECT_ROOT + '/icefrontend/parsed_tmp.txt') as file:
+        with open(PROJECT_ROOT + "/icefrontend/parsed_tmp.txt") as file:
             lines = [line.strip() for line in file]
         phraser = Phrasing()
         paused_text = phraser.insert_pauses(lines)
-        os.remove(PROJECT_ROOT + '/icefrontend/parsed_tmp.txt')
+        os.remove(PROJECT_ROOT + "/icefrontend/parsed_tmp.txt")
         os.chdir(CWD)
         return paused_text
 

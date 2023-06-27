@@ -20,4 +20,4 @@
         SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-#from .number_functions import handle_sentence
+# from .number_functions import handle_sentence

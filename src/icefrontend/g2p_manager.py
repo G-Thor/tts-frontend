@@ -9,17 +9,16 @@ from .tokens import Token, Normalized, TagToken
 from ice_g2p.transcriber import Transcriber, G2P_METHOD
 from ice_g2p.g2p_lstm import ALPHABET, ENGLISH_ALPHABET
 
-SIL_TOKEN = '<sil>'
-ENGLISH = 'enska'
+SIL_TOKEN = "<sil>"
+ENGLISH = "enska"
 
 
 class G2PManager:
-
     def __init__(self):
         self.g2p = Transcriber(G2P_METHOD.FAIRSEQ, lang_detect=True, use_dict=True)
-        self.syllab_symbol = ''
+        self.syllab_symbol = ""
         self.stress = False
-        self.word_separator = ''
+        self.word_separator = ""
 
     def set_core_pron_dict(self, pron_dict: dict):
         self.g2p.override_core_dict(pron_dict)
@@ -48,13 +47,14 @@ class G2PManager:
         base_token = Token(word)
         base_token.set_index(token_ind)
         base_token.set_tokenized([base_token])
-        base_token.set_normalized([Normalized(word, 'n')])
+        base_token.set_normalized([Normalized(word, "n")])
         return base_token
 
-    def transcribe(self, token_list: list, cmu: bool=False) -> list:
+    def transcribe(self, token_list: list, cmu: bool = False) -> list:
         """Transcribes the tokens in token_list and returns a list of
         transcribedTokens, keeps the tagTokens already in the input token_list, except for
-        the lang-SSML tag, which is used to transcribe English words using English g2p"""
+        the lang-SSML tag, which is used to transcribe English words using English g2p
+        """
 
         transcribed_list = []
         is_icelandic = True
@@ -80,21 +80,28 @@ class G2PManager:
                 transcribed_arr = []
                 if token.normalized:
                     for elem in token.normalized:
-                        if elem.pos == 'TAG':
+                        if elem.pos == "TAG":
                             # tag tokens like '<sil>' that can be enclosed in a normalized token, should be kept
                             # but not transcribed (where they would cause an error)
                             transcribed_arr.append(elem.norm_str.strip())
                         else:
                             norm_arr = elem.norm_str.split()
                             for word in norm_arr:
-                                if word.startswith('<'):
+                                if word.startswith("<"):
                                     transcribed = word.strip()
                                 else:
-                                    word = ''.join(c for c in word.lower() if c in ALPHABET or c in ENGLISH_ALPHABET)
-                                    transcribed = self.g2p.transcribe(word.lower().strip(), icelandic=is_icelandic, cmu=cmu)
+                                    word = "".join(
+                                        c
+                                        for c in word.lower()
+                                        if c in ALPHABET or c in ENGLISH_ALPHABET
+                                    )
+                                    transcribed = self.g2p.transcribe(
+                                        word.lower().strip(),
+                                        icelandic=is_icelandic,
+                                        cmu=cmu,
+                                    )
                                 transcribed_arr.append(transcribed.strip())
                 token.set_transcribed(transcribed_arr)
                 transcribed_list.append(token)
 
         return transcribed_list
-

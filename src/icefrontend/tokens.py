@@ -8,33 +8,36 @@ from typing import Union
 
 
 class Token:
-
     def __init__(self, name: str):
         self.name = name
         self.token_index = -1
         self.start = -1
         self.end = -1
-        self.clean = ''
+        self.clean = ""
         self.tokenized = []
         self.normalized = []
         self.transcribed = []
         self.nsw = False
 
     def __repr__(self):
-        return f"\nToken:\n" \
-               f"Original: {self.name}, Clean: {self.clean},\n" \
-               f"Tokenized: {self.tokenized},\n" \
-               f"Normalized: {str(self.normalized)}\n" \
-               f"Transcribed: {str(self.transcribed)}\n" \
-               f"index: {self.token_index}, {self.start}, {self.end}\n"
+        return (
+            f"\nToken:\n"
+            f"Original: {self.name}, Clean: {self.clean},\n"
+            f"Tokenized: {self.tokenized},\n"
+            f"Normalized: {str(self.normalized)}\n"
+            f"Transcribed: {str(self.transcribed)}\n"
+            f"index: {self.token_index}, {self.start}, {self.end}\n"
+        )
 
     def __str__(self):
-        return f"\nToken:\n" \
-               f"Original: {self.name}, Clean: {self.clean},\n" \
-               f"Tokenized: {self.tokenized},\n" \
-               f"Normalized: {str(self.normalized)}\n" \
-               f"Transcribed: {str(self.transcribed)}\n" \
-               f"index: {self.token_index}, {self.start}, {self.end}\n"
+        return (
+            f"\nToken:\n"
+            f"Original: {self.name}, Clean: {self.clean},\n"
+            f"Tokenized: {self.tokenized},\n"
+            f"Normalized: {str(self.normalized)}\n"
+            f"Transcribed: {str(self.transcribed)}\n"
+            f"index: {self.token_index}, {self.start}, {self.end}\n"
+        )
 
     def __eq__(self, other):
         if isinstance(other, Token):
@@ -42,7 +45,9 @@ class Token:
         return False
 
     def to_json(self):
-        return json.dumps(self, ensure_ascii=False, default=lambda o: o.__dict__, indent=4)
+        return json.dumps(
+            self, ensure_ascii=False, default=lambda o: o.__dict__, indent=4
+        )
 
     def set_index(self, ind: int):
         """Index of the token in text."""
@@ -84,18 +89,17 @@ class Token:
                 # spellchecking is performed on a text as extracted by "extract_normalized_text" which does not
                 # include the following chars
                 # TODO: define centrally, ensure those chars are not included in normalized text
-                if elem in [',', '.', ':', '?', '(', ')', '/', '"']:
+                if elem in [",", ".", ":", "?", "(", ")", "/", '"']:
                     continue
                 counter += 1
                 if spellchecked_tokens[counter] != elem:
                     norm_arr[i] = spellchecked_tokens[counter]
-            norm.norm_str = ' '.join(norm_arr)
+            norm.norm_str = " ".join(norm_arr)
 
         return counter + 1
 
 
 class Normalized:
-
     def __init__(self, normalized: str, pos: str):
         self.norm_str = normalized
         self.pos = pos
@@ -116,11 +120,12 @@ class Normalized:
 class TagToken:
     """This token is different from the (processed) text token classes in that it does not
     hold information about a text token but on a tag, like SSML-tag or pause tags. It can be
-    an enclosing tag (<> ... </>) or a single tag. Default is a non-enclosing, single tag token."""
+    an enclosing tag (<> ... </>) or a single tag. Default is a non-enclosing, single tag token.
+    """
 
     def __init__(self, name: str, ind: int):
         self.name = name
-        self.token_index = ind # position in text token collection
+        self.token_index = ind  # position in text token collection
         # if this is an ssml start or end tag, set values in set_ssml_start/set_ssml_end as appropriate
         self.ssml_start = False
         self.ssml_end = False

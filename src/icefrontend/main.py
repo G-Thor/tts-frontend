@@ -18,7 +18,7 @@ from .textprocessing_manager import Manager
 
 
 def get_example_text():
-    return 'Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags. '
+    return "Snýst í suðaustan 10-18 m/s og hlýnar með rigningu, en norðaustanátt og snjókoma NV-til fyrri part dags. "
 
 
 def process(text: str) -> str:
@@ -27,6 +27,7 @@ def process(text: str) -> str:
 
 def process_to_json(text: str) -> str:
     return text
+
 
 def main():
     manager = Manager()
@@ -47,5 +48,5 @@ def main():
     print(extract_text(transcribed, False))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

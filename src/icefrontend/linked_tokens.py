@@ -1,7 +1,5 @@
-
 class TokenNode:
-
-    def __init__(self, token, processed, pos=''):
+    def __init__(self, token, processed, pos=""):
         self.token = token
         self.processed = processed
         self.pos = pos
@@ -20,13 +18,12 @@ class TokenNode:
 
 
 class LinkedTokens:
-
     def __init__(self):
         self.head = None
         self.tail = None
 
     def __str__(self):
-        return ' -> '.join([str(node) for node in self])
+        return " -> ".join([str(node) for node in self])
 
     def __len__(self):
         count = 0
@@ -53,7 +50,7 @@ class LinkedTokens:
     def init_from_prenorm_tuples(self, tuples: list):
         for tup in tuples:
             if len(tup) != 2:
-                ValueError('Tuples have to have len 2, len is ' + str(len(tup)))
+                ValueError("Tuples have to have len 2, len is " + str(len(tup)))
             else:
                 node = TokenNode(tup[0], tup[1])
                 self.add_node(node)
@@ -61,7 +58,7 @@ class LinkedTokens:
     def init_from_norm_tuples(self, tuples: list):
         for tup in tuples:
             if len(tup) != 3:
-                ValueError('Tuples have to have len 3, len is ' + str(len(tup)))
+                ValueError("Tuples have to have len 3, len is " + str(len(tup)))
             else:
                 node = TokenNode(tup[0], tup[1], pos=tup[2])
                 self.add_node(node)

@@ -31,25 +31,33 @@ from .normalizer_manager import NormalizerManager
 from .spellchecker_manager import SpellCheckerManager
 from .phrasing_manager import PhrasingManager
 from .g2p_manager import G2PManager
-logging.getLogger('fairseq').setLevel(logging.WARNING)
+
+logging.getLogger("fairseq").setLevel(logging.WARNING)
+
 
 class Manager:
-
     def __init__(self, custom_pron_dict={}, useGPU=False):
         if useGPU:
             if torch.cuda.is_available():
-                print('GPU detected, using GPU for Tagging and G2P')
-                device=torch.device('cuda')
+                print("GPU detected, using GPU for Tagging and G2P")
+                device = torch.device("cuda")
             else:
-                print('GPU not detected, using CPU for Tagging and G2P')
-                device=torch.device('cpu')
+                print("GPU not detected, using CPU for Tagging and G2P")
+                device = torch.device("cpu")
         else:
-            device=torch.device('cpu')
+            device = torch.device("cpu")
         self.resources = ManagerResources()
-        self.tokenizer = Tokenizer(self.get_abbreviations(), self.get_nonending_abbreviations())
+        self.tokenizer = Tokenizer(
+            self.get_abbreviations(), self.get_nonending_abbreviations()
+        )
         cleaner_lexicon = self.get_default_cleaner_lexicon()
-        self.cleaner = CleanerManager(self.get_replacement_dict(), self.get_post_lookup_dict(), cleaner_lexicon,
-                                      self.get_alphabet(), self.get_html_mapping())
+        self.cleaner = CleanerManager(
+            self.get_replacement_dict(),
+            self.get_post_lookup_dict(),
+            cleaner_lexicon,
+            self.get_alphabet(),
+            self.get_html_mapping(),
+        )
         self.normalizer = NormalizerManager(device=device)
         self.spellchecker = SpellCheckerManager()
         self.phrasing = PhrasingManager()
@@ -159,7 +167,15 @@ class Manager:
         phrased = self.phrasing.phrase_token_list(normalized)
         return phrased
 
-    def transcribe(self, text: str, html=False, phrasing=True, spellcheck=False, split_sent=True, cmu: bool=False) -> list:
+    def transcribe(
+        self,
+        text: str,
+        html=False,
+        phrasing=True,
+        spellcheck=False,
+        split_sent=True,
+        cmu: bool = False,
+    ) -> list:
         """
         Transcribes 'text' using the SAMPA phonetic alphabet.
 
@@ -198,17 +214,23 @@ class Manager:
         return json_repr
 
     @staticmethod
-    def get_string_representation_original(token_list: list, ignore_tags=True, word_separator='') -> str:
+    def get_string_representation_original(
+        token_list: list, ignore_tags=True, word_separator=""
+    ) -> str:
         """Extract original token names from the tokens in token_list.
         :param token_list: the token list to turn into string
         :param ignore_tags: if True, tag tokens (like <sil>) will not be present in the returned string
         :param word_separator: if not empty, the separator will be inserted between each token.
         :return the original string extracted from token_list"""
 
-        return extract_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+        return extract_text(
+            token_list, ignore_tags=ignore_tags, word_separator=word_separator
+        )
 
     @staticmethod
-    def get_string_representation_clean(token_list: list, ignore_tags=True, word_separator='') -> str:
+    def get_string_representation_clean(
+        token_list: list, ignore_tags=True, word_separator=""
+    ) -> str:
         """Extract a clean version from the tokens in token_list.
 
         :param token_list: the token list to turn into string
@@ -216,10 +238,14 @@ class Manager:
         :param word_separator: if not empty, the separator will be inserted between each token.
         :return a cleaned string extracted from token_list"""
 
-        return extract_clean_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+        return extract_clean_text(
+            token_list, ignore_tags=ignore_tags, word_separator=word_separator
+        )
 
     @staticmethod
-    def get_string_representation_tokens(token_list: list, ignore_tags=True, word_separator='') -> str:
+    def get_string_representation_tokens(
+        token_list: list, ignore_tags=True, word_separator=""
+    ) -> str:
         """Extract a tokenized version from the tokens in token_list, i.e. a string where each token is
         separated by a whitespace. Note that the tokenized version is also a clean version (whereas the clean
         version might not yet be correctly tokenized).
@@ -228,10 +254,14 @@ class Manager:
         :param word_separator: if not empty, the separator will be inserted between each token.
         :return a tokenized string extracted from token_list"""
 
-        return extract_tokenized_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+        return extract_tokenized_text(
+            token_list, ignore_tags=ignore_tags, word_separator=word_separator
+        )
 
     @staticmethod
-    def get_string_representation_normalized(token_list: list, ignore_tags=True, word_separator='') -> str:
+    def get_string_representation_normalized(
+        token_list: list, ignore_tags=True, word_separator=""
+    ) -> str:
         """Extract a normalized version from the tokens in token_list.
 
         :param token_list: the token list to turn into string
@@ -239,10 +269,14 @@ class Manager:
         :param word_separator: if not empty, the separator will be inserted between each token.
         :return a normalized string extracted from token_list"""
 
-        return extract_normalized_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+        return extract_normalized_text(
+            token_list, ignore_tags=ignore_tags, word_separator=word_separator
+        )
 
     @staticmethod
-    def get_string_representation_transcribed(token_list: list, ignore_tags=True, word_separator='') -> str:
+    def get_string_representation_transcribed(
+        token_list: list, ignore_tags=True, word_separator=""
+    ) -> str:
         """Extract a transcribed version from the tokens in token_list.
 
         :param token_list: the token list to turn into string
@@ -250,10 +284,14 @@ class Manager:
         :param word_separator: if not empty, the separator will be inserted between each token.
         :return a transcribed string extracted from token_list"""
 
-        return extract_transcribed_text(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+        return extract_transcribed_text(
+            token_list, ignore_tags=ignore_tags, word_separator=word_separator
+        )
 
     @staticmethod
-    def get_tokenized_sentence_representation(token_list: list, ignore_tags=True, word_separator='') -> list:
+    def get_tokenized_sentence_representation(
+        token_list: list, ignore_tags=True, word_separator=""
+    ) -> list:
         """Extract sentences from token_list. The lowest level for sentences is the cleaned and tokenized version of the
         original text, since the sentence segmentation is performed during tokenization.
 
@@ -263,10 +301,14 @@ class Manager:
         :return a list of sentences where each sentence represents tokens between sentence separator tag-tokens.
         If no sentence separator is present in token_list, the list will have len==1."""
 
-        return extract_sentences(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+        return extract_sentences(
+            token_list, ignore_tags=ignore_tags, word_separator=word_separator
+        )
 
     @staticmethod
-    def get_normalized_sentence_representation(token_list: list, ignore_tags=True, word_separator='') -> list:
+    def get_normalized_sentence_representation(
+        token_list: list, ignore_tags=True, word_separator=""
+    ) -> list:
         """Extract transcribed sentences from token_list.
 
         :param token_list: the token list to turn into a list of sentence strings
@@ -275,10 +317,14 @@ class Manager:
         :return a list of normalized sentences where each sentence represents tokens between sentence separator tag-tokens.
         If no sentence separator is present in token_list, the list will have len==1."""
 
-        return extract_sentences_by_normalized(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+        return extract_sentences_by_normalized(
+            token_list, ignore_tags=ignore_tags, word_separator=word_separator
+        )
 
     @staticmethod
-    def get_transcribed_sentence_representation(token_list: list, ignore_tags=True, word_separator='') -> list:
+    def get_transcribed_sentence_representation(
+        token_list: list, ignore_tags=True, word_separator=""
+    ) -> list:
         """Extract transcribed sentences from token_list.
 
         :param token_list: the token list to turn into a list of sentence strings
@@ -287,12 +333,14 @@ class Manager:
         :return a list of transcribed sentences where each sentence represents tokens between sentence separator tag-tokens.
         If no sentence separator is present in token_list, the list will have len==1."""
 
-        return extract_sentences_by_transcribed(token_list, ignore_tags=ignore_tags, word_separator=word_separator)
+        return extract_sentences_by_transcribed(
+            token_list, ignore_tags=ignore_tags, word_separator=word_separator
+        )
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='tts frontend-pipeline for raw text')
-    parser.add_argument('input_text', type=str, help='text to process for tts')
+    parser = argparse.ArgumentParser(description="tts frontend-pipeline for raw text")
+    parser.add_argument("input_text", type=str, help="text to process for tts")
 
     return parser.parse_args()
 
@@ -300,29 +348,25 @@ def parse_args():
 def main():
     args = parse_args()
     if not args.input_text:
-        print('please provide string to process!')
+        print("please provide string to process!")
         exit()
 
     input_text = args.input_text
     manager = Manager()
     clean_input = manager.clean(input_text)
-    print('==========CLEAN=============')
+    print("==========CLEAN=============")
     print(manager.get_string_representation_clean(clean_input))
     normalized_input = manager.normalize(input_text)
-    print('==========NORMALIZED=============')
+    print("==========NORMALIZED=============")
     print(manager.get_string_representation_normalized(normalized_input))
     phrased = manager.phrase(input_text)
-    print('==========PHRASED=============')
+    print("==========PHRASED=============")
     print(manager.get_string_representation_normalized(phrased, False))
-    manager.set_g2p_syllab_symbol('.')
+    manager.set_g2p_syllab_symbol(".")
     transcribed = manager.transcribe(input_text, phrasing=False)
-    print('==========TRANSCRIBED=============')
+    print("==========TRANSCRIBED=============")
     print(manager.get_string_representation_transcribed(transcribed, False))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-
-
-
-

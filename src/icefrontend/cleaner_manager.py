@@ -12,19 +12,31 @@ from .tokens_manager import init_tokens
 from text_cleaner import TextCleaner
 from text_cleaner import HtmlCleaner
 
-EN_LABEL = '(e.'
-CLOSING_PAR = ')'
+EN_LABEL = "(e."
+CLOSING_PAR = ")"
 # SSML 1.1 standard
 SSML_LANG_START = '<lang xml:lang="en-GB">'
-SSML_LANG_END = '</lang>'
+SSML_LANG_END = "</lang>"
 
 
 class CleanerManager:
     """Connects the pipeline to the text-cleaner module and manages input and output"""
 
-    def __init__(self, repl_dict: dict, post_lookup_dict: dict, lexicon: list, alphabet: list, html_mapping: dict):
-        self.cleaner = TextCleaner(replacement_dict=repl_dict, post_dict=post_lookup_dict, preserve_strings=lexicon,
-                                   punct_set=PUNCTUATION, alphabet=alphabet)
+    def __init__(
+        self,
+        repl_dict: dict,
+        post_lookup_dict: dict,
+        lexicon: list,
+        alphabet: list,
+        html_mapping: dict,
+    ):
+        self.cleaner = TextCleaner(
+            replacement_dict=repl_dict,
+            post_dict=post_lookup_dict,
+            preserve_strings=lexicon,
+            punct_set=PUNCTUATION,
+            alphabet=alphabet,
+        )
         self.html_cleaner = HtmlCleaner(tag_replacements=html_mapping)
         self.next_token_index = 0
 
@@ -37,7 +49,8 @@ class CleanerManager:
 
     def clean_html_text(self, html_string: str) -> list:
         """The html parser is designed around the EPUB-format and will parse the html_string accordingly.
-        Returns a list of CleanTokens, with TagTokens if any SSML-tags were created by the cleaner."""
+        Returns a list of CleanTokens, with TagTokens if any SSML-tags were created by the cleaner.
+        """
         clean_tokens = self.create_token_lists_from_html(html_string)
         return clean_tokens
 
@@ -50,7 +63,7 @@ class CleanerManager:
 
     def clean_token_list(self, token_list: list) -> list:
         """Extract raw tokens list from text and enrich with a clean version."""
-        lang_tag = ''
+        lang_tag = ""
         clean_tokens = []
         for token in token_list:
             clean_tok = self.cleaner.clean(token.name)
@@ -67,7 +80,7 @@ class CleanerManager:
                     token.set_clean(wrd)
                     clean_tokens.append(token)
                 clean_tokens.append(tag_tok)
-                lang_tag = ''
+                lang_tag = ""
             else:
                 token.set_clean(clean_tok)
                 clean_tokens.append(token)

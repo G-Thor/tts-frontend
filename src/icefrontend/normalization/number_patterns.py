@@ -43,7 +43,7 @@ fractionacc = r"[nl][kvh][ef]þ-?((g?s?)|([svo]?[fme]?))"
 # 2/3 hluta: tveggja þriðju hluta
 fractiongen = r"[nl][kvh][ef]e-?((g?s?)|([svo]?[fme]?))"
 
-# similar to before 
+# similar to before
 # 1 followed by noun or adjective, masc., nom. or acc.
 einn = r"[nl]k[ef][no]-?((g?s?)|([svo]?[fme]?))"
 einum = r"[nl]k[ef]þ-?((g?s?)|([svo]?[fme]?))"
@@ -109,7 +109,7 @@ nonoun = r"^(?![nl][kvh][ef][noþe]-?((g?s?)|([svo]?[fme]?)))[a-záðéíóúý�
 # digits in decimal numbers preceding the decimal place, can be any positive number and 0
 # for example {0,}35 or {13.234,}2342
 zeropnt_ptrn = r"^(([1-9]((\d{0,2}(\.\d{3})*\.)\d{3}))|\d+|0),"
-# 
+#
 
 # a possibility of digits in decimal numbers succeeding the decimal place, can be any positive number or fraction
 # for example 1{,24} or 4{½}
@@ -126,7 +126,7 @@ fraction_ptrn_before = r"^(([1-9]((\d{0,2}(\.\d{3})*))|\d+))\s"
 # pattern before a number that is not 11-19, so the number becomes "and number"
 # legal - 1: einn
 # illegal - 11: ellefu
-# legal - 21: tuttugu og einn 
+# legal - 21: tuttugu og einn
 ones_ptrn_no11 = r"^((([1-9]((\d{0,2}(\.\d{3})*\.\d)|\d*))[02-9])|[2-9]?)?"
 # 11 is legal
 ones_ptrn_11 = r"^([1-9]((\d{0,2}(\.\d{3})*\.\d{2}|\d*))|[1-9]?)?"
@@ -150,12 +150,12 @@ thsnds_and_ptrn_cardinal = r"\.?(0([01][1-9]|[1-9]0)|[1-9]00)"
 # {2008.}: tvö þúsundasti og áttundi
 thsnds_and_ptrn_ordinal = r"\.?(0[2-9]0|[1-9]00)\.$"
 
-#hndrds_ptrn_after = r"(0([01][1-9]|[2-9]0)|00)"
+# hndrds_ptrn_after = r"(0([01][1-9]|[2-9]0)|00)"
 # "hundruð"
-#{2}21.342
+# {2}21.342
 hndrd_thsnd_after = r"([2-9][1-9])(\.?\d{3})"
 # "hundruð og"
-#{2}14.342
+# {2}14.342
 hndrd_and_thsnd = r"(([01][1-9]\.?\d{3})|([2-9]0\.?\d{3}))"
 
 # milljón(ir) og
@@ -163,7 +163,9 @@ hndrd_and_thsnd = r"(([01][1-9]\.?\d{3})|([2-9]0\.?\d{3}))"
 million_and_cardinal = r"\.(([1-9]00\.000)|(0[1-9]0\.000)|(00[1-9]\.000)|(000\.[1-9]00)|(000\.0([01][1-9]|[2-9]0)))"
 # milljónasti og
 # {2.000.002.}: tvímilljónasti og annar
-million_and_ordinal = r"\.(([1-9]00\.000)|(0[1-9]0\.000)|(00[1-9]\.000)|(000\.[1-9]00)|(000\.0[2-9]0))\.$"
+million_and_ordinal = (
+    r"\.(([1-9]00\.000)|(0[1-9]0\.000)|(00[1-9]\.000)|(000\.[1-9]00)|(000\.0[2-9]0))\.$"
+)
 # milljónir ..
 # {2.034.435} tvær milljónir þrjátíu og fjögur þúsund fjögur hundruð þrjátíu og fimm
 milln_ptrn_after = r"\.((000\.000)|([1-9](?!00\.000)\d{2}\.\d{3})|(0[1-9](?!0\.000)\d\.\d{3})|(00[1-9]\.(?!0{3})\d{3})|(0{3}\.0[2-9][1-9]))"
@@ -188,7 +190,25 @@ billion6 = r"(0{3}\.00[1-9]\.(?!000)\d{3})"
 billion7 = r"((0{3}\.){2}[1-9](?!00)\d{2})"
 billion8 = r"((0{3}\.){2}0[2-9][1-9])"
 
-billion_after = r"\.((000(\.0{3}){2})|" + billion1 + "|" + billion2 + "|" + billion3 + "|" + billion4 + "|" + billion5 + "|" + billion6 + "|" + billion7 + "|" + billion8 + ")"
+billion_after = (
+    r"\.((000(\.0{3}){2})|"
+    + billion1
+    + "|"
+    + billion2
+    + "|"
+    + billion3
+    + "|"
+    + billion4
+    + "|"
+    + billion5
+    + "|"
+    + billion6
+    + "|"
+    + billion7
+    + "|"
+    + billion8
+    + ")"
+)
 
 # 203.000.321.023
 hndrd_and_billion = r"([01][1-9]|[2-9]0)(\.\d{3}){3}"

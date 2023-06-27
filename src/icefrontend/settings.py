@@ -27,15 +27,19 @@ package_path = os.path.dirname(os.path.abspath(__file__))
 ###########################
 # This abbreviations file is extracted from DMII-abbreviations version 21.10, available here: http://hdl.handle.net/20.500.12537/164
 # The file contains only unique entries, entries not used in the frontend-manager are commented out
-DMII_ABBR_FILE = os.path.join(package_path, 'resources/dmii_abbr.txt')
+DMII_ABBR_FILE = os.path.join(package_path, "resources/dmii_abbr.txt")
 # Abbreviations not included in the dmii-file
-ABBR_FILE = os.path.join(package_path, 'resources/abbreviations_general.txt')
+ABBR_FILE = os.path.join(package_path, "resources/abbreviations_general.txt")
 # Abbreviations that are very unlikely to stand at the end of a sentence
 # (e.g. 'Dr.' which in a normal case should be followed by a name)
-ABBR_NONENDING_FILE = os.path.join(package_path, 'resources/abbreviations_nonending.txt')
+ABBR_NONENDING_FILE = os.path.join(
+    package_path, "resources/abbreviations_nonending.txt"
+)
 # The pronunciation dictionary used in the pipeline at each step to check for valid tokens.
 # This is version 22.01, available here: http://hdl.handle.net/20.500.12537/181
-PRON_DICT_FILE = os.path.join(package_path, 'resources/ice_pron_dict_standard_clear.csv')
+PRON_DICT_FILE = os.path.join(
+    package_path, "resources/ice_pron_dict_standard_clear.csv"
+)
 
 ##########################
 
@@ -47,46 +51,82 @@ POST_DICT = post_dict_lookup
 # Characters valid throughout the pipeline. All other characters will be deleted or replaced in the text-cleaning
 # module, except when they occur in tokens in valid dictionaries (abbreviations or pronunciation dictionaries)
 # Note that the following characters from the English alphabet are not included: c, q, w, z
-VALID_CHARACTERS = ['a', 'á', 'b', 'd', 'ð', 'e', 'é', 'f', 'g', 'h', 'i', 'í', 'j', 'k', 'l', 'm',
-                      'n', 'o', 'ó', 'p', 'r', 's', 't', 'u', 'ú', 'v', 'y', 'ý', 'þ', 'æ', 'ö', 'x', 'c', 'q', 'w', 'z']
+VALID_CHARACTERS = [
+    "a",
+    "á",
+    "b",
+    "d",
+    "ð",
+    "e",
+    "é",
+    "f",
+    "g",
+    "h",
+    "i",
+    "í",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "ó",
+    "p",
+    "r",
+    "s",
+    "t",
+    "u",
+    "ú",
+    "v",
+    "y",
+    "ý",
+    "þ",
+    "æ",
+    "ö",
+    "x",
+    "c",
+    "q",
+    "w",
+    "z",
+]
 
 # punctuation symbols not deleted or replaced in the text-cleaner
-PUNCTUATION = ['.',',',':','!','?', '/', '-', '+', '<', '>', '%']
+PUNCTUATION = [".", ",", ":", "!", "?", "/", "-", "+", "<", ">", "%"]
 
 # Default behaviour is to replace html closing tags with a full stop. Edit this map to change replacements
 HTML_CLOSING_TAG_REPL = {
-    'ul':'.',
-    'ol':'.',
-    'li':'.',
-    'dl':'.',
-    'dt':'.',
-    'dd':'.',
-    'table':'.',
-    'tr':'.',
-    'td':'.',
-    'span':'.',
-    'strong':'.',
-    'caption':'.',
-    'title':'.',
-    'h1':'.',
-    'h2':'.',
-    'h3':'.',
-    'h4':'.',
-    'h5':'.',
-    'h6':'.',
-    'p':'.',
-    'br':'.',
-    'hr':'.',
-    'a':'', # leaving this empty helps with links broken in two between <a> tags
-            # and plain text until books get better (html translators).
+    "ul": ".",
+    "ol": ".",
+    "li": ".",
+    "dl": ".",
+    "dt": ".",
+    "dd": ".",
+    "table": ".",
+    "tr": ".",
+    "td": ".",
+    "span": ".",
+    "strong": ".",
+    "caption": ".",
+    "title": ".",
+    "h1": ".",
+    "h2": ".",
+    "h3": ".",
+    "h4": ".",
+    "h5": ".",
+    "h6": ".",
+    "p": ".",
+    "br": ".",
+    "hr": ".",
+    "a": "",  # leaving this empty helps with links broken in two between <a> tags
+    # and plain text until books get better (html translators).
 }
 
-SENTENCE_TAG = '<sentence>'
+SENTENCE_TAG = "<sentence>"
 
 
 class ManagerResources:
-    """ Holds lists and maps with lists and dictionaries for use in any submodule of the frontend manager.
-        Lists of abbreviations and a pronunciation dictionary.
+    """Holds lists and maps with lists and dictionaries for use in any submodule of the frontend manager.
+    Lists of abbreviations and a pronunciation dictionary.
     """
 
     def __init__(self):
@@ -114,7 +154,7 @@ class ManagerResources:
 
     @staticmethod
     def read_dict(filename: str) -> dict:
-        """ Reads lines from 'filename' and initializes a dictionary. Logs a warning if a line in the file does
+        """Reads lines from 'filename' and initializes a dictionary. Logs a warning if a line in the file does
         not conform to the two column, tab separated format required; ignores empty lines.
 
         :param filename: the input file to read from
@@ -125,9 +165,11 @@ class ManagerResources:
             for line in f.read().splitlines():
                 if not line:
                     continue
-                line_arr = line.split('\t')
+                line_arr = line.split("\t")
                 if len(line_arr) == 2:
                     file_content[line_arr[0]] = line_arr[1]
                 else:
-                    logging.warning(f'{line} in {filename} does not have the correct format (two tab separated columns)!')
+                    logging.warning(
+                        f"{line} in {filename} does not have the correct format (two tab separated columns)!"
+                    )
         return file_content

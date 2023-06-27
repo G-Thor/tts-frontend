@@ -2,7 +2,7 @@ import re
 import difflib
 from typing import Tuple
 
-from . import abbr_dict as abd 
+from . import abbr_dict as abd
 from . import area_dict as ad
 from . import currency_dict as cd
 from . import denominator_dict as dend
@@ -36,19 +36,20 @@ symb_dict = sd.symb_dict
 
 
 class Normalized:
-
     def __init__(self, original: str, ind: int, start: int, end: int):
         self.original_token = original
         self.index = ind
         self.span_start = start
         self.span_end = end
-        self.normalized = ''
+        self.normalized = ""
 
 
-def replace_in_list(token_list: list, original_list: list, token: str, replacement: str) -> list:
+def replace_in_list(
+    token_list: list, original_list: list, token: str, replacement: str
+) -> list:
     """Replace all occurrences of 'token' with 'replacement' in the 'token_list'"""
 
-    #replaced_list = [replacement if item == token else item for item in token_list]
+    # replaced_list = [replacement if item == token else item for item in token_list]
     replaced_list = []
     zipped_list = []
     for ind, item in enumerate(token_list):
@@ -62,28 +63,30 @@ def replace_in_list(token_list: list, original_list: list, token: str, replaceme
 
 
 def get_replacement(orig_text: str, replacement_text: str) -> Tuple[str, str]:
-    """ Find the difference between the two input strings and extract the corresponding tokens.
-    Return both tokens. """
-    diff = difflib.ndiff(orig_text.split(' '), replacement_text.split(' '))
-    to_replace = ''
-    replacement = ''
+    """Find the difference between the two input strings and extract the corresponding tokens.
+    Return both tokens."""
+    diff = difflib.ndiff(orig_text.split(" "), replacement_text.split(" "))
+    to_replace = ""
+    replacement = ""
     for d in diff:
-        if d.startswith('-'):
-            to_replace += ' ' + d.split(' ')[1]
-        elif d.startswith('+'):
-            replacement += ' ' + d.split(' ')[1]
+        if d.startswith("-"):
+            to_replace += " " + d.split(" ")[1]
+        elif d.startswith("+"):
+            replacement += " " + d.split(" ")[1]
     return to_replace.strip(), replacement.strip()
 
 
-def replace_all_old(current_sent: list, original_list: list, dic: dict, ptrn="") -> list:
-    """ Replace words according to the appropriate dictionary.
+def replace_all_old(
+    current_sent: list, original_list: list, dic: dict, ptrn=""
+) -> list:
+    """Replace words according to the appropriate dictionary.
     Return a list of tuples, containing original tokens and replacements."""
 
     replaced_list = current_sent
-    #current_text = ' '.join(current_sent)
-    current_text = ''
+    # current_text = ' '.join(current_sent)
+    current_text = ""
     for tok in current_sent:
-        current_text += tok.normalized_token + ' '
+        current_text += tok.normalized_token + " "
 
     zipped_result = zip(current_sent, replaced_list)
     if re.findall(ptrn, current_text):
@@ -93,13 +96,15 @@ def replace_all_old(current_sent: list, original_list: list, dic: dict, ptrn="")
                 sub_text = re.sub(i, j, current_text)
                 to_replace, replacement = get_replacement(current_text, sub_text)
 
-
-                #replaced_list = replace_in_list(replaced_list, to_replace, replacement)
-                replaced_list, zipped_result = replace_in_list(current_text.split(), original_list, to_replace, replacement)
+                # replaced_list = replace_in_list(replaced_list, to_replace, replacement)
+                replaced_list, zipped_result = replace_in_list(
+                    current_text.split(), original_list, to_replace, replacement
+                )
                 current_text = sub_text
-        #zipped_result = zip(original_list, replaced_list)
+        # zipped_result = zip(original_list, replaced_list)
     result_list = list(zipped_result)
     return result_list, replaced_list
+
 
 # replace words according to the appropriate dictionary
 def replace_all(text, dic, ptrn=""):
@@ -108,7 +113,8 @@ def replace_all(text, dic, ptrn=""):
             text = re.sub(i, j, text)
     return text
 
-# replace words according to the appropriate domain 
+
+# replace words according to the appropriate domain
 def replace_domain(splitsent, domain, ptrn=r"\-|\–|\—"):
     finalstring = ""
     replacement_index = []
@@ -117,21 +123,26 @@ def replace_domain(splitsent, domain, ptrn=r"\-|\–|\—"):
             # original: does not work as intended, since at i == 0 splitsent[i-1] is the last element (splitsent[-1])
             # of the array, so check for zero first
             # if re.match(r"\d", splitsent[i-1]) and re.match(ptrn, splitsent[i]) and re.match(r"\d", splitsent[i+1]):
-            if i > 0 and re.match(r"\d", splitsent[i - 1]) and re.match(ptrn, splitsent[i]) and re.match(r"\d", splitsent[i + 1]):
+            if (
+                i > 0
+                and re.match(r"\d", splitsent[i - 1])
+                and re.match(ptrn, splitsent[i])
+                and re.match(r"\d", splitsent[i + 1])
+            ):
                 replacement_index.append(i)
-                if domain == 'sport':
+                if domain == "sport":
                     splitsent[i] = ""
                 else:
                     splitsent[i] = "til"
             # this is a potential negative number, like '-4,5', replace '-' with 'mínus'
-            elif re.match(ptrn, splitsent[i]) and re.match(r"\d", splitsent[i+1]):
+            elif re.match(ptrn, splitsent[i]) and re.match(r"\d", splitsent[i + 1]):
                 splitsent[i] = "mínus"
         except:
             pass
         finalstring += splitsent[i] + " "
-    #return finalstring
+    # return finalstring
     return " ".join(splitsent)
-    #return replacement_index
+    # return replacement_index
 
 
 def init_normalized(sent: str) -> list:
@@ -140,7 +151,7 @@ def init_normalized(sent: str) -> list:
     char_counter = 0
     for i, tok in enumerate(sent_arr):
         start = sent.index(tok, char_counter)
-        norm_list.append(Normalized(tok, i, start, start+len(tok)))
+        norm_list.append(Normalized(tok, i, start, start + len(tok)))
     return norm_list
 
 
@@ -162,4 +173,3 @@ def replace_abbreviations(sent, domain):
     sent = replace_all(sent, abbr_dict)
     sent = replace_domain(sent.split(), domain)
     return sent
-

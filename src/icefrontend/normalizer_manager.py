@@ -18,13 +18,11 @@ from .normalization import abbr_functions
 from .normalization import number_functions
 
 
-
 class NormalizerManager:
-
     def __init__(self, device=torch.device("cpu")):
         self.tagger: pos.Tagger = torch.hub.load(
             repo_or_dir="cadia-lvl/POS",
-            model="tag", # This specifies which model to use. Set to 'tag_large' for large model.
+            model="tag",  # This specifies which model to use. Set to 'tag_large' for large model.
             device=device,
             force_reload=False,
             force_download=False,
@@ -91,9 +89,13 @@ class NormalizerManager:
         :return: two lists of tuples, from both normalizing steps
         """
         prenormalized = abbr_functions.replace_abbreviations(text, "other")
-        prenorm_tuples = self.extract_prenorm_tuples(prenormalized.split(), text.split())
-        expanded_abbr = ''.join(prenormalized).strip()
-        normalized = number_functions.handle_sentence(expanded_abbr, "other", self.tagger)
+        prenorm_tuples = self.extract_prenorm_tuples(
+            prenormalized.split(), text.split()
+        )
+        expanded_abbr = "".join(prenormalized).strip()
+        normalized = number_functions.handle_sentence(
+            expanded_abbr, "other", self.tagger
+        )
         return prenorm_tuples, normalized
 
     def extract_prenorm_tuples(self, prenorm_arr: list, sent_arr: list) -> list:
@@ -119,17 +121,19 @@ class NormalizerManager:
         current_values = []
 
         for elem in diff:
-            if elem[0] == ' ':
+            if elem[0] == " ":
                 if current_keys and current_values:
                     # add the orignal (key) - prenorm (value) tuple to the results
-                    norm_tuples.extend(self.extract_tuples(current_keys, current_values))
+                    norm_tuples.extend(
+                        self.extract_tuples(current_keys, current_values)
+                    )
                     current_keys = []
                     current_values = []
                 norm_tuples.append((elem[2:].strip(), elem[2:].strip()))
-            elif elem[0] == '-':
+            elif elem[0] == "-":
                 # elem in list1 but not in list2
                 current_keys.append(str(elem[2:]))
-            elif elem[0] == '+':
+            elif elem[0] == "+":
                 # elem in list2 but not in list1
                 current_values.append(str(elem[2:]))
         if current_keys and current_values:
@@ -147,7 +151,7 @@ class NormalizerManager:
         """
         tup_list = []
         if len(keys) == 1:
-            tup_list.append((keys[0].strip(), ' '.join(values).strip()))
+            tup_list.append((keys[0].strip(), " ".join(values).strip()))
         elif len(keys) == len(values):
             zipped = zip(keys, values)
             for elem in zipped:
@@ -157,18 +161,18 @@ class NormalizerManager:
             current_val = values[value_ind]
             for elem in keys:
                 matching = True
-                val = ''
+                val = ""
                 elem_rest = elem
                 while matching:
                     if elem_rest[0] == current_val[0]:
-                        val += ' ' + current_val
+                        val += " " + current_val
                         value_ind += 1
                         if value_ind < len(values):
                             current_val = values[value_ind]
                         else:
                             break
                         elem_rest = elem_rest[1:]
-                    elif elem_rest.startswith('.'):
+                    elif elem_rest.startswith("."):
                         # the dot will have been deleted if the prenorm expanded an abbreviation
                         # so check for a match of the next char
                         elem_rest = elem_rest[1:]
@@ -178,7 +182,12 @@ class NormalizerManager:
 
         return tup_list
 
-    def align_normalized(self, token_list: list, pre_normalized: LinkedTokens, final_normalized: LinkedTokens):
+    def align_normalized(
+        self,
+        token_list: list,
+        pre_normalized: LinkedTokens,
+        final_normalized: LinkedTokens,
+    ):
         """Use all three input lists to enrich the tokens in token_list with normalized representations
         of the original tokens. Return a new list containing the same tokens as in token_list, enriched
         with normalized elements, and possibly added TagTokens, if created from normalized results.
@@ -216,13 +225,14 @@ class NormalizerManager:
             self.update_current()
 
     def process_token(self, token):
-        """Processes the 'token' and enriches with normalized version. Updates the normalized_tokens list.
-        """
+        """Processes the 'token' and enriches with normalized version. Updates the normalized_tokens list."""
         # init several variables for more readable code below
-        tokenized_token = ' '.join(token.tokenized)
-        token_is_prenorm_input = (tokenized_token == self.current_prenorm.token)
-        token_is_norm_input = (tokenized_token == self.current_norm.token)
-        prenorm_is_norm_input = (self.current_prenorm.processed == self.current_norm.token)
+        tokenized_token = " ".join(token.tokenized)
+        token_is_prenorm_input = tokenized_token == self.current_prenorm.token
+        token_is_norm_input = tokenized_token == self.current_norm.token
+        prenorm_is_norm_input = (
+            self.current_prenorm.processed == self.current_norm.token
+        )
 
         # The original (tokenized) token is the same as the input for the final normalizing step,
         # the normalized version contains one ore more tokens:
@@ -238,7 +248,9 @@ class NormalizerManager:
         if token_is_norm_input or (token_is_prenorm_input and prenorm_is_norm_input):
             normalized_arr = []
             for word in self.current_norm.processed.split():
-                normalized_arr = self.extend_norm_arr(self.current_norm, normalized_arr, word)
+                normalized_arr = self.extend_norm_arr(
+                    self.current_norm, normalized_arr, word
+                )
             self.update_alignment(normalized_arr, token, set_visited=True)
 
         # Did the pre normalization step expand an abbreviation to more tokens? This means that the input
@@ -249,11 +261,13 @@ class NormalizerManager:
             normalized_arr = []
             for j, word in enumerate(self.current_prenorm.processed.split()):
                 if self.current_norm.token == word:
-                    norm_word =self.current_norm.processed
-                    normalized_arr = self.extend_norm_arr(self.current_norm, normalized_arr, norm_word)
+                    norm_word = self.current_norm.processed
+                    normalized_arr = self.extend_norm_arr(
+                        self.current_norm, normalized_arr, norm_word
+                    )
                     if self.current_norm.next:
-                       self.current_norm.visited = True
-                       self.current_norm = self.current_norm.next
+                        self.current_norm.visited = True
+                        self.current_norm = self.current_norm.next
                 else:
                     break
             self.update_alignment(normalized_arr, token)
@@ -278,24 +292,27 @@ class NormalizerManager:
                 break
             # did the pre-norm process split up the token in tok.tokenized?
             no_prenorm_tokens = len(self.current_prenorm.processed.split())
-            original_tok_rest = ''.join(original_arr)
+            original_tok_rest = "".join(original_arr)
             original_arr = self.update_original_arr(original_arr)
             pre_norm_arr = self.current_prenorm.processed.split()
-            pre_norm_str = ''.join(pre_norm_arr)
-            if original_tok_rest.startswith(pre_norm_str) or self.current_prenorm.processed.startswith(
-                    self.current_norm.token):
+            pre_norm_str = "".join(pre_norm_arr)
+            if original_tok_rest.startswith(
+                pre_norm_str
+            ) or self.current_prenorm.processed.startswith(self.current_norm.token):
                 for k in range(no_prenorm_tokens):
                     norm_word = self.current_norm.processed.strip()
                     self.current_norm.visited = True
-                    normalized_arr = self.extend_norm_arr(self.current_norm, normalized_arr, norm_word)
+                    normalized_arr = self.extend_norm_arr(
+                        self.current_norm, normalized_arr, norm_word
+                    )
                     if self.current_norm.next:
                         self.current_norm = self.current_norm.next
                     else:
                         break
             else:
                 # We should not get here!
-                print('original_token: ' + token.name)
-                print('prenormalized: ' + self.current_prenorm.processed)
+                print("original_token: " + token.name)
+                print("prenormalized: " + self.current_prenorm.processed)
 
             self.update_current()
         return normalized_arr
@@ -317,17 +334,17 @@ class NormalizerManager:
         return original_arr
 
     def extend_norm_arr(self, normalized_node, normalized_arr, word):
-        punct = ''
+        punct = ""
         # we should not get punctuated tokens back from the normalizer, however, this
         # can happen, so we deal with that here and separate the word from the punctuation
-        if word.endswith(',') or word.endswith('.'):
+        if word.endswith(",") or word.endswith("."):
             punct = word[-1]
             word = word[:-1]
         if word:
             # create a normalized entry with pos = TAG for tags
             # in this case, the tag occurs within a token, so we don't create a tag-token here
-            if word.startswith('<'):
-                normalized = Normalized(word, 'TAG')
+            if word.startswith("<"):
+                normalized = Normalized(word, "TAG")
             else:
                 normalized = Normalized(word, normalized_node.pos)
             normalized_arr.append(normalized)

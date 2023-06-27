@@ -1,36 +1,39 @@
-
 import re
-import sys
-import os
-import pos
-import torch
 
-from . import number_help as nh 
+from . import number_help as nh
 
 from . import abbr_patterns as ap
 from . import abbr_functions as af
 
 from . import cardinal_ones_tuples as cot
-from . import  cardinal_thousands_tuples as ctt
-from . import  cardinal_million_tuples as cmt
-from . import  cardinal_big_tuples as cbt
-from . import  ordinal_ones_tuples as oot
-from . import  ordinal_thousands_tuples as ott
-from . import  ordinal_million_tuples as omt
-from . import  ordinal_big_tuples as obt
-from . import  decimal_thousands_tuples as dtt
-from . import  fraction_tuples as ft
-from . import  sport_tuples as st
-from . import  time_tuples as tt
+from . import cardinal_thousands_tuples as ctt
+from . import cardinal_million_tuples as cmt
+from . import cardinal_big_tuples as cbt
+from . import ordinal_ones_tuples as oot
+from . import ordinal_thousands_tuples as ott
+from . import ordinal_million_tuples as omt
+from . import ordinal_big_tuples as obt
+from . import decimal_thousands_tuples as dtt
+from . import fraction_tuples as ft
+from . import sport_tuples as st
+from . import time_tuples as tt
 
-from . import  symbols_dict as sd
+from . import symbols_dict as sd
 
 cardinal_thousand_tuples = cot.cardinal_ones_tuples + ctt.cardinal_thousands_tuples
 cardinal_million_tuples = cardinal_thousand_tuples + cmt.cardinal_million_tuples
 cardinal_big_tuples = cardinal_million_tuples + cbt.cardinal_big_tuples
-ordinal_thousand_tuples = oot.ordinal_ones_tuples + ctt.cardinal_thousands_tuples + ott.ordinal_thousands_tuples
-ordinal_million_tuples = ordinal_thousand_tuples + cmt.cardinal_million_tuples + omt.ordinal_million_tuples
-ordinal_big_tuples = ordinal_million_tuples + cbt.cardinal_big_tuples + obt.ordinal_big_tuples
+ordinal_thousand_tuples = (
+    oot.ordinal_ones_tuples
+    + ctt.cardinal_thousands_tuples
+    + ott.ordinal_thousands_tuples
+)
+ordinal_million_tuples = (
+    ordinal_thousand_tuples + cmt.cardinal_million_tuples + omt.ordinal_million_tuples
+)
+ordinal_big_tuples = (
+    ordinal_million_tuples + cbt.cardinal_big_tuples + obt.ordinal_big_tuples
+)
 decimal_thousand_tuples = cardinal_thousand_tuples + dtt.decimal_thousands_tuples
 decimal_small_tuples = cardinal_thousand_tuples + dtt.decimal_small_tuples
 decimal_big_tuples = cardinal_big_tuples + dtt.decimal_thousands_tuples
@@ -47,7 +50,8 @@ def make_dict(word, type_cols):
     """Create a dictionary with 'word' as key and a dictionary as value. The dictionary has each item
     from 'type_cols' as keys and each key has an empty string as value. These values will be filled
     during later processing steps, according to the number represented by 'word'.
-    'type_cols' typically contains a list of positions in a number, e.g. ['thousands', 'hundreds', 'dozens', ...]."""
+    'type_cols' typically contains a list of positions in a number, e.g. ['thousands', 'hundreds', 'dozens', ...].
+    """
     value_dict = {}
     value_dict[word] = {type_cols[0]: ""}
     for col in type_cols[1:]:
@@ -106,11 +110,13 @@ def digit_fun(digit_str: str) -> str:
         digit_str = re.sub(digit, word, digit_str)
     return digit_str
 
+
 # Expand the ordinal digits, the expansion of digits_ord is in number_help
 def digit_ord_fun(substr):
     for digit, word in nh.digits_ord:
         substr = re.sub(r"^0" + digit + r"\.$", "núll " + word, substr)
     return substr
+
 
 def wlink_fun(text, ptrn=ap.link_ptrn_all):
     if re.findall(ptrn, text):
@@ -120,66 +126,108 @@ def wlink_fun(text, ptrn=ap.link_ptrn_all):
         print(substr)
         return substr
 
+
 # Fill in the number appropriately based on pattern
 def number_findall(word, tag, domain):
     normalized_str = ""
     if re.findall(nh.ordinal_thousand_ptrn, word):
         ordinal_thousand_dict = make_dict(word, nh.int_cols_thousand)
-        tmpword = fill_dict(word, tag, ordinal_thousand_tuples, ordinal_thousand_dict, nh.int_cols_thousand)
+        tmpword = fill_dict(
+            word,
+            tag,
+            ordinal_thousand_tuples,
+            ordinal_thousand_dict,
+            nh.int_cols_thousand,
+        )
 
     elif re.findall(nh.ordinal_million_ptrn, word):
         ordinal_million_dict = make_dict(word, nh.int_cols_million)
-        tmpword = fill_dict(word, tag, ordinal_million_tuples, ordinal_million_dict, nh.int_cols_million)
+        tmpword = fill_dict(
+            word, tag, ordinal_million_tuples, ordinal_million_dict, nh.int_cols_million
+        )
 
     elif re.findall(nh.ordinal_big_ptrn, word):
         ordinal_big_dict = make_dict(word, nh.int_cols_big)
-        tmpword = fill_dict(word, tag, ordinal_big_tuples, ordinal_big_dict, nh.int_cols_big)
+        tmpword = fill_dict(
+            word, tag, ordinal_big_tuples, ordinal_big_dict, nh.int_cols_big
+        )
 
     elif re.findall(nh.cardinal_thousand_ptrn, word):
         cardinal_thousand_dict = make_dict(word, nh.int_cols_thousand)
-        tmpword = fill_dict(word, tag, cardinal_thousand_tuples, cardinal_thousand_dict, nh.int_cols_thousand)
+        tmpword = fill_dict(
+            word,
+            tag,
+            cardinal_thousand_tuples,
+            cardinal_thousand_dict,
+            nh.int_cols_thousand,
+        )
 
     elif re.findall(nh.cardinal_million_ptrn, word):
         cardinal_million_dict = make_dict(word, nh.int_cols_million)
-        tmpword = fill_dict(word, tag, cardinal_million_tuples, cardinal_million_dict, nh.int_cols_million)
+        tmpword = fill_dict(
+            word,
+            tag,
+            cardinal_million_tuples,
+            cardinal_million_dict,
+            nh.int_cols_million,
+        )
 
     elif re.findall(nh.cardinal_big_ptrn, word):
         cardinal_big_dict = make_dict(word, nh.int_cols_big)
-        tmpword = fill_dict(word, tag, cardinal_big_tuples, cardinal_big_dict, nh.int_cols_big)
+        tmpword = fill_dict(
+            word, tag, cardinal_big_tuples, cardinal_big_dict, nh.int_cols_big
+        )
 
     # changed by ABN: check specially for a small decimal pattern to pronounce as a unit and not as
     # separate numbers. If that (original) behaviour is wanted, skip this test and go straight to the next
     # 'elif'-clause.
     elif re.findall(nh.decimal_small_ptrn, word):
         decimal_thousand_dict = make_dict(word, nh.decimal_cols_small)
-        tmpword = fill_dict(word, tag, decimal_small_tuples, decimal_thousand_dict, nh.decimal_cols_small)
+        tmpword = fill_dict(
+            word,
+            tag,
+            decimal_small_tuples,
+            decimal_thousand_dict,
+            nh.decimal_cols_small,
+        )
 
     elif re.findall(nh.decimal_thousand_ptrn, word):
         decimal_thousand_dict = make_dict(word, nh.decimal_cols_thousand)
-        tmpword = fill_dict(word, tag, decimal_thousand_tuples, decimal_thousand_dict, nh.decimal_cols_thousand)
+        tmpword = fill_dict(
+            word,
+            tag,
+            decimal_thousand_tuples,
+            decimal_thousand_dict,
+            nh.decimal_cols_thousand,
+        )
 
     elif re.findall(nh.decimal_big_ptrn, word):
         decimal_big_dict = make_dict(word, nh.decimal_cols_big)
-        tmpword = fill_dict(word, tag, decimal_big_tuples, decimal_big_dict, nh.decimal_cols_big)
+        tmpword = fill_dict(
+            word, tag, decimal_big_tuples, decimal_big_dict, nh.decimal_cols_big
+        )
 
     elif re.findall(nh.time_ptrn, word):
         time_dict = make_dict(word, nh.time_sport_cols)
         tmpword = fill_dict(word, tag, time_tuples, time_dict, nh.time_sport_cols)
 
     elif re.findall(nh.fraction_ptrn, word):
-        if domain == 'other' or re.findall("½|⅓|⅔|¼|¾", word):
+        if domain == "other" or re.findall("½|⅓|⅔|¼|¾", word):
             fraction_dict = make_dict(word, nh.decimal_cols_thousand)
-            tmpword = fill_dict(word, tag, fraction_tuples, fraction_dict, nh.decimal_cols_thousand)
-        elif domain == 'sport':
+            tmpword = fill_dict(
+                word, tag, fraction_tuples, fraction_dict, nh.decimal_cols_thousand
+            )
+        elif domain == "sport":
             sport_dict = make_dict(word, nh.time_sport_cols)
             tmpword = fill_dict(word, tag, sport_tuples, sport_dict, nh.time_sport_cols)
-     
+
     elif re.findall(r"^0\d\.$", word):
         tmpword = digit_ord_fun(word)
     else:
         tmpword = digit_fun(word)
     word = tmpword
     return word
+
 
 # Fill in the number, letter, link or symbol based on the tag of the next word
 def handle_sentence(sent, domain, tagger):
@@ -205,7 +253,5 @@ def handle_sentence(sent, domain, tagger):
         returnsent += word + " "
         res_tuples.append((orig_word, word, tagsent[tag_counter]))
         tag_counter += 1
-    #return returnsent
+    # return returnsent
     return res_tuples
-
-
