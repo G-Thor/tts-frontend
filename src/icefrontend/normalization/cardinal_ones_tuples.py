@@ -1,5 +1,5 @@
-from . import tuple_rules as tp
 from . import number_patterns as npa
+from . import tuple_rules as tp
 
 # pattern, tag, column, wo
 

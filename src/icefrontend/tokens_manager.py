@@ -1,7 +1,8 @@
 import logging
 import re
-from .tokens import Token, TagToken
+
 from .settings import SENTENCE_TAG
+from .tokens import TagToken, Token
 
 
 def format_telephonenumbers(text: str) -> str:

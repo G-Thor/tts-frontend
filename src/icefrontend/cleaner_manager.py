@@ -5,12 +5,11 @@ possibly contain TagTokens, created from SSML-tags inserted by the cleaner modul
 
 """
 
-from .settings import PUNCTUATION
+from text_cleaner import HtmlCleaner, TextCleaner
 
+from .settings import PUNCTUATION
 from .tokens import TagToken
 from .tokens_manager import init_tokens
-from text_cleaner import TextCleaner
-from text_cleaner import HtmlCleaner
 
 EN_LABEL = "(e."
 CLOSING_PAR = ")"

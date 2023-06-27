@@ -1,6 +1,6 @@
+import logging
 import re
 import sys
-import logging
 
 """
 Phrasing is performed on parsed text in IceParser (IceNLP) format, using phrases and special words to determine

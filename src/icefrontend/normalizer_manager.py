@@ -5,17 +5,16 @@ version. The list will also possibly contain TagTokens, created from SSML-tags i
 the normalizer module, as well as pos-tags delivered by the normalizer module.
 """
 import difflib
-
-import torch
-import pos
 import logging
 from typing import Tuple
+
+import pos
+import torch
+
+from .linked_tokens import LinkedTokens
+from .normalization import abbr_functions, number_functions
 from .tokens import Normalized, TagToken
 from .tokens_manager import extract_sentences
-from .linked_tokens import LinkedTokens
-
-from .normalization import abbr_functions
-from .normalization import number_functions
 
 
 class NormalizerManager:

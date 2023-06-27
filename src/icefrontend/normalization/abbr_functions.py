@@ -1,5 +1,5 @@
-import re
 import difflib
+import re
 from typing import Tuple
 
 from . import abbr_dict as abd
@@ -10,12 +10,12 @@ from . import direction_dict as dird
 from . import distance_dict as dd
 from . import electronic_dict as ed
 from . import period_dict as pd
+from . import pre_help_dicts as phd
 from . import rest_dict as rd
+from . import symbols_dict as sd
 from . import time_dict as td
 from . import volume_dict as vd
 from . import weight_dict as wd
-from . import pre_help_dicts as phd
-from . import symbols_dict as sd
 
 direction_ptrn = r"[SN]?V|N|[SN]?A|S"
 

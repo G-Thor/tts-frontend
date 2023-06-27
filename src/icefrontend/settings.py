@@ -15,9 +15,10 @@
     Created: 03-2022
 """
 
-import os
 import logging
-from .unicode_maps import replacement_dictionary, post_dict_lookup
+import os
+
+from .unicode_maps import post_dict_lookup, replacement_dictionary
 
 # Set package path
 package_path = os.path.dirname(os.path.abspath(__file__))

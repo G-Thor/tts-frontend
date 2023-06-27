@@ -1,7 +1,7 @@
 from .reynir_wrapper import tts_spellcheck
-from .tokens import Token, TagToken
-from .tokens_manager import extract_sentences_by_normalized
 from .settings import SENTENCE_TAG
+from .tokens import TagToken, Token
+from .tokens_manager import extract_sentences_by_normalized
 
 
 class SpellCheckerManager:

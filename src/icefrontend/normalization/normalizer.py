@@ -4,9 +4,10 @@
 import re
 import sys
 import time
-from regina_normalizer import tokenizer
-from regina_normalizer import abbr_functions as af
-from regina_normalizer import number_functions as nf
+
+from . import abbr_functions as af
+from . import number_functions as nf
+from . import tokenizer
 
 
 def input_string(text_string, domain):

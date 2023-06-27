@@ -14,23 +14,20 @@
 
 """
 import argparse
-import torch
 import logging
 
-from .unicode_maps import replacement_dictionary, post_dict_lookup
-from .settings import ManagerResources
-from .settings import (
-    HTML_CLOSING_TAG_REPL,
-    PUNCTUATION,
-    VALID_CHARACTERS,
-)
-from .tts_tokenizer import Tokenizer
-from .tokens_manager import *
+import torch
+
 from .cleaner_manager import CleanerManager
-from .normalizer_manager import NormalizerManager
-from .spellchecker_manager import SpellCheckerManager
-from .phrasing_manager import PhrasingManager
 from .g2p_manager import G2PManager
+from .normalizer_manager import NormalizerManager
+from .phrasing_manager import PhrasingManager
+from .settings import (HTML_CLOSING_TAG_REPL, PUNCTUATION, VALID_CHARACTERS,
+                       ManagerResources)
+from .spellchecker_manager import SpellCheckerManager
+from .tokens_manager import *
+from .tts_tokenizer import Tokenizer
+from .unicode_maps import post_dict_lookup, replacement_dictionary
 
 logging.getLogger("fairseq").setLevel(logging.WARNING)
 

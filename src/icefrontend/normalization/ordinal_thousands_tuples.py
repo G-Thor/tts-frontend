@@ -2,7 +2,6 @@
 from . import number_patterns as npa
 from . import tuple_rules as tp
 
-
 ordinal_thousands_tuples = []
 
 for rule, letter in tp.dozens_ordinal_letters:

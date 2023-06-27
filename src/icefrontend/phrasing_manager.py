@@ -4,9 +4,11 @@ a list of NormalizedTokens, the same as the input from the normalizer_manager. T
 where it assumes a good place for a speech pause.
 """
 import os
-from .tokens import Token, TagToken
-from .tokens_manager import extract_tagged_text
+
 from phrasing.phrasing import Phrasing
+
+from .tokens import TagToken, Token
+from .tokens_manager import extract_tagged_text
 
 # used to replace punctuation in normalized text if we don't perform real phrasing analysis
 SIL_TAG = "<sil>"
@@ -45,13 +47,14 @@ class PhrasingManager:
 
     def phrase_token_list(self, normalized_tokens: list) -> list:
         """Send the pos-tagged text in normalized tokens through
-        the phrasing module and returns the list with inserted TagTokens where appropriate."""
+        the phrasing module and returns the list with inserted TagTokens where appropriate.
+        """
         tagged_text = extract_tagged_text(normalized_tokens)
         phrased = self.phrase_text(tagged_text)
         phrased_list = []
-        #TODO: should we maintain sentence structure or only use one string for the whole input?
+        # TODO: should we maintain sentence structure or only use one string for the whole input?
         for sent in phrased:
-            phrased_list.extend(sent.split(' '))
+            phrased_list.extend(sent.split(" "))
         phrased_token_list = []
         phrase_index = 0
 
@@ -59,13 +62,16 @@ class PhrasingManager:
             if phrase_index >= len(phrased_list):
                 # phrased is finished, last token from normalized list left
                 phrased_token_list.append(token)
-            elif token.name == phrased_list[phrase_index] or token.name.replace('-', '<pau>') == phrased_list[phrase_index]:
+            elif (
+                token.name == phrased_list[phrase_index]
+                or token.name.replace("-", "<pau>") == phrased_list[phrase_index]
+            ):
                 # TODO: <pau> tag should not be embedded in a token! check phrasing module
                 phrased_token_list.append(token)
             elif isinstance(token, TagToken):
                 phrased_token_list.append(token)
                 phrase_index -= 1
-            elif phrased_list[phrase_index].startswith('<'):
+            elif phrased_list[phrase_index].startswith("<"):
                 # we have a new tag token from the phrasing module
                 tag_tok = TagToken(phrased_list[phrase_index], token.token_index)
                 phrased_token_list.append(tag_tok)
@@ -73,7 +79,10 @@ class PhrasingManager:
                 # in between tokens as a result of phrasing, remove the punctuation token from the normalized list and
                 # add the token to the list as well
                 for i, normalized in enumerate(token.normalized):
-                    if normalized.pos in ['.', ',', 'pg', 'pa', 'pl'] or token.name == '/':
+                    if (
+                        normalized.pos in [".", ",", "pg", "pa", "pl"]
+                        or token.name == "/"
+                    ):
                         token.normalized.remove(normalized)
                 if len(token.normalized) > 0:
                     phrased_token_list.append(token)

@@ -4,14 +4,12 @@
 API and command line interface for the use of GreynirCorrect in a TTS-normalizer pipeline
 
 """
-from reynir_correct.checker import check_single
-from islenska import Bin
-
-from reynir_correct.checker import AnnotatedSentence
-
-from typing import Iterator, Iterable, Tuple
-import sys
 import argparse
+import sys
+from typing import Iterable, Iterator, Tuple
+
+from islenska import Bin
+from reynir_correct.checker import AnnotatedSentence, check_single
 
 # File types for UTF-8 encoded text files
 ReadFile = argparse.FileType("r", encoding="utf-8")

@@ -13,8 +13,8 @@
     a console_script entry point in setup.py
 
 """
-from .tokens_manager import extract_text
 from .textprocessing_manager import Manager
+from .tokens_manager import extract_text
 
 
 def get_example_text():

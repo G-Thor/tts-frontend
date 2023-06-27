@@ -1,24 +1,21 @@
 import re
 
-from . import number_help as nh
-
-from . import abbr_patterns as ap
 from . import abbr_functions as af
-
+from . import abbr_patterns as ap
+from . import cardinal_big_tuples as cbt
+from . import cardinal_million_tuples as cmt
 from . import cardinal_ones_tuples as cot
 from . import cardinal_thousands_tuples as ctt
-from . import cardinal_million_tuples as cmt
-from . import cardinal_big_tuples as cbt
-from . import ordinal_ones_tuples as oot
-from . import ordinal_thousands_tuples as ott
-from . import ordinal_million_tuples as omt
-from . import ordinal_big_tuples as obt
 from . import decimal_thousands_tuples as dtt
 from . import fraction_tuples as ft
+from . import number_help as nh
+from . import ordinal_big_tuples as obt
+from . import ordinal_million_tuples as omt
+from . import ordinal_ones_tuples as oot
+from . import ordinal_thousands_tuples as ott
 from . import sport_tuples as st
-from . import time_tuples as tt
-
 from . import symbols_dict as sd
+from . import time_tuples as tt
 
 cardinal_thousand_tuples = cot.cardinal_ones_tuples + ctt.cardinal_thousands_tuples
 cardinal_million_tuples = cardinal_thousand_tuples + cmt.cardinal_million_tuples
