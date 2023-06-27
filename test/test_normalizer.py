@@ -1,13 +1,22 @@
 import unittest
 import os
-from manager.textprocessing_manager import Manager
-import manager.tokens_manager as tokens
+from icefrontend import Frontend
+import icefrontend.tokens_manager as tokens
 
 
 class TestNormalizer(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.manager = Frontend()
+
+    def setUp(self) -> None:
+        self.manager.set_g2p_word_separator('')
+        self.manager.set_g2p_syllab_symbol('')
+        self.manager.set_g2p_custom_dict(None)
+
     def test_normalize_weather(self):
-        manager = Manager()
+        manager = self.manager
         input_text = '10-18 m/s'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
@@ -23,7 +32,7 @@ class TestNormalizer(unittest.TestCase):
             print(elem.to_json())
 
     def test_normalize_denom(self):
-        manager = Manager()
+        manager = self.manager
         input_text = '5/6'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
@@ -34,7 +43,7 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual('fimmtíu evrur á tonnið og þrjár komma fimm milljónir á hektarann', result_str)
 
     def test_normalize_abbr(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'þetta voru ca. 5 mín.'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
@@ -47,7 +56,7 @@ class TestNormalizer(unittest.TestCase):
         #self.assertEqual('fimm hundruð kílóvattstundir', result_str)
 
     def test_decimals(self):
-        manager = Manager()
+        manager = self.manager
         input_text = '20,86'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
@@ -70,7 +79,7 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual('eitt komma núll fjögur', result_str)
 
     def test_normalize_negative_numbers(self):
-        manager = Manager()
+        manager = self.manager
         input_text = '-2'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
@@ -81,7 +90,7 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual('mínus þrjú komma fimm prósent', result_str)
 
     def test_normalize_foreign(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'the wall'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_text(normalized)
@@ -92,14 +101,14 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual('certainly cawity', result_str)
 
     def test_normalize_numbers(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'Síminn er 570 2367 á sjúkrahúsinu'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('Síminn er fimm sjö núll <sil> tveir þrír sex sjö á sjúkrahúsinu', result_str)
 
     def test_normalize_acronyms(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'Eins og FTSE vísitalan segir AIDS'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
@@ -107,7 +116,7 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual('Eins og F T S E vísitalan segir AIDS', result_str)
 
     def test_split_sentences(self):
-        manager = Manager()
+        manager = self.manager
         input_text = self.get_long_text1()
         normalized = manager.normalize(input_text, split_sent=True)
         result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
@@ -118,7 +127,7 @@ class TestNormalizer(unittest.TestCase):
                          'í fundarmönnum <sentence>', result_str)
 
     def test_split_sentences_to_list(self):
-        manager = Manager()
+        manager = self.manager
         input_text = self.get_long_text1()
         normalized = manager.normalize(input_text, split_sent=True)
         result = manager.get_normalized_sentence_representation(normalized, ignore_tags=False)
@@ -127,7 +136,7 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual(3, len(result))
 
     def test_split_sentences_to_list_2(self):
-        manager = Manager()
+        manager = self.manager
         input_text = self.get_longer_text_2()
         normalized = manager.normalize(input_text, split_sent=True)
         result = manager.get_normalized_sentence_representation(normalized, ignore_tags=False)
@@ -137,7 +146,7 @@ class TestNormalizer(unittest.TestCase):
 
     def test_normalize_html(self):
         #TODO: fix 'kr. 156.459,-' (see Akranes_10.txt')
-        manager = Manager()
+        manager = self.manager
         input_text = self.get_html_string()
         normalized = manager.normalize(input_text, html=True, split_sent=True)
         result = manager.get_normalized_sentence_representation(normalized, ignore_tags=False)
@@ -147,14 +156,14 @@ class TestNormalizer(unittest.TestCase):
         #self.assertEqual(10, len(result))
 
     def test_percent(self):
-        manager = Manager()
+        manager = self.manager
         input_text = '1,5-2,5%'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
         self.assertEqual('eitt komma fimm til tvö komma fimm prósent', result_str)
 
     def test_hyphen(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'Blikar heppnir, KR-ingar óheppnir.'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
@@ -178,7 +187,7 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual('Evrópa <sil> EFTA <sil> ríkin <sil> <sentence>', result_str)
 
     def test_sport_results_time(self):
-        manager = Manager()
+        manager = self.manager
         input_text = '100 metra bringusundi S14 þroskahamlaðra á 1:09,14 mínútu og var örskammt frá Íslandsmeti sínu ' \
                      'í greininni sem er 1:09,01 mínúta.'
         normalized = manager.normalize(input_text)
@@ -189,7 +198,7 @@ class TestNormalizer(unittest.TestCase):
         #            'níu komma núll ein mínúta.', result_str)
 
     def test_born_dead(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'Jón, f. 4. apríl 1927, d. 10. febrúar 2010.'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
@@ -197,7 +206,7 @@ class TestNormalizer(unittest.TestCase):
                          ' dáinn tíunda febrúar tvö þúsund og tíu <sentence>', result_str)
 
     def test_digits(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'Blálanga, óslægð 10.6.22 130,00 kr/kg. Er lagt til að ákvæðið gildi til 31. maí 2023.'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
@@ -207,14 +216,14 @@ class TestNormalizer(unittest.TestCase):
        #                  ' maí tvö þúsund tuttugu og þrjú <sentence>', result_str)
 
     def test_year_digits(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'síðan í mars 2010. mbl.is/​ Kristinn Magnússon'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized, ignore_tags=False)
         self.assertEqual('síðan í mars tvö þúsund og tíu <sil> m b l punktur i s <sil> Kristinn Magnússon <sentence>', result_str)
 
     def test_year_digits_and_percent(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'Í nýrri verðbólguspá Greiningar Íslandsbanka er því spáð að vísitala neysluverðs hækki um 1% í júní. ' \
                     'Gangi spáin eftir mælist 12 mánaða verðbóla 8,4%, en hún hefur ekki mælst svo mikil síðan í mars ' \
                     '2010. mbl.is/​ Kristinn Magnússon'
@@ -227,7 +236,7 @@ class TestNormalizer(unittest.TestCase):
                 result_str)
 
     def test_dates(self):
-        manager = Manager()
+        manager = self.manager
         input_text = '27. Mar 2020'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
@@ -246,16 +255,16 @@ class TestNormalizer(unittest.TestCase):
         self.assertEqual('tuttugasta og sjöunda  þriðja  tuttugu', result_str)
 
     def test_corrupt_input(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'Rekstrarfélag tekur þá 1.012.500 krónur í umsjónarlaun (meðaleign * 0,75%) = ((120 m.kr.+150 m.kr.)/2) * 0,75%.'
         normalized = manager.normalize(input_text)
         result_str = tokens.extract_normalized_text(normalized)
-        self.assertEqual('Rekstrarfélag tekur þá ein milljón tólf þúsund og fimm hundruð krónur í umsjónarlaun '
-                         'meðaleign núll komma sjötíu og fimm prósent jafnt og hundrað og tuttugu milljónir króna plús '
-                         'hundrað og fimmtíu milljónir króna tvö milljónir króna tvö núll komma sjötíu og fimm prósent', result_str)
+        self.assertEqual('Rekstrarfélag tekur þá eina milljón tólf þúsund og fimm hundruð krónur í umsjónarlaun '
+                         'meðaleign sinnum núll komma sjötíu og fimm prósent jafnt og hundrað og tuttugu milljónir króna plús '
+                         'hundrað og fimmtíu milljónir króna deilt með tveimur sinnum núll komma sjötíu og fimm prósent', result_str)
 
     def test_normalize_div(self):
-        manager = Manager()
+        manager = self.manager
         test_map = self.get_test_map()
         for elem in test_map:
             normalized = manager.normalize(elem, split_sent=True)
@@ -263,7 +272,7 @@ class TestNormalizer(unittest.TestCase):
             #self.assertEqual(norm_text, test_map[elem])
 
     def test_normalize_hbs_text(self):
-        manager = Manager()
+        manager = self.manager
         test_list = self.get_hbs_test_list()
         for elem in test_list:
             normalized = manager.normalize(elem, html=True, split_sent=True)
@@ -271,7 +280,7 @@ class TestNormalizer(unittest.TestCase):
             print(norm_text)
 
     def test_normalize_table(self):
-        manager = Manager()
+        manager = self.manager
         input_text = self.get_table_text()
         normalized = manager.normalize(input_text, split_sent=True)
         norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
@@ -280,7 +289,7 @@ class TestNormalizer(unittest.TestCase):
     # Development 'tests' for inspection of the processing of long files, no assertions
     """
     def test_texts_from_html_file(self):
-        manager = Manager()
+        manager = self.manager
         input_text = self.get_very_long_html_text()
         normalized = manager.normalize(input_text, html=True, split_sent=True)
         norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)
@@ -290,7 +299,7 @@ class TestNormalizer(unittest.TestCase):
             print(sent)
 
     def test_texts_from_file(self):
-        manager = Manager()
+        manager = self.manager
         input_text = self.get_very_long_text()
         normalized = manager.normalize(input_text, split_sent=True)
         norm_text = tokens.extract_normalized_text(normalized, ignore_tags=False)

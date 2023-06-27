@@ -1,20 +1,29 @@
 import unittest
 import os
-from manager.textprocessing_manager import Manager
-import manager.tokens_manager as tokens
+from icefrontend import Frontend
+import icefrontend.tokens_manager as tokens
 
 
 class TestTranscriber(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.manager = Frontend()
+
+    def setUp(self) -> None:
+        self.manager.set_g2p_word_separator('')
+        self.manager.set_g2p_syllab_symbol('')
+        self.manager.set_g2p_custom_dict(None)
+
     def test_simple_transcript(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'hlaupa'
         transcribed = manager.transcribe(input_text)
         result_str = tokens.extract_transcribed_text(transcribed)
         self.assertEqual('l_0 9i: p a', result_str)
 
     def test_single_letters(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'nýjasta LTS version af Ubuntu Server (20.04.3 LTS)'
         transcribed = manager.transcribe(input_text)
         result_str = tokens.extract_transcribed_text(transcribed)
@@ -23,7 +32,7 @@ class TestTranscriber(unittest.TestCase):
  'i: r E t l_0 t_h j E: E s', result_str)
 
     def test_word_sep_transcribe(self):
-        manager = Manager()
+        manager = self.manager
         manager.set_g2p_word_separator('-')
         test_string = 'hlaupa í burtu í dag'
         transcribed = manager.transcribe(test_string)
@@ -31,7 +40,7 @@ class TestTranscriber(unittest.TestCase):
         self.assertEqual('l_0 9i: p a - i: - p Y r_0 t Y - i: - t a: G', result_str)
 
     def test_syllabification(self):
-        manager = Manager()
+        manager = self.manager
         manager.set_g2p_syllab_symbol('.')
         test_string = 'hlaupa í burtu í dag'
         transcribed = manager.transcribe(test_string)
@@ -39,7 +48,7 @@ class TestTranscriber(unittest.TestCase):
         self.assertEqual('l_0 9i: . p a i: p Y r_0 . t Y i: t a: G', result_str)
 
     def test_english(self):
-        manager = Manager()
+        manager = self.manager
         test_string = 'sense of coherence'
         transcribed = manager.transcribe(test_string)
         result_str = tokens.extract_transcribed_text(transcribed)
@@ -47,7 +56,7 @@ class TestTranscriber(unittest.TestCase):
 
 
     def test_custom_dict(self):
-        manager = Manager()
+        manager = self.manager
         custom_dict = self.get_custom_dict()
         manager.set_g2p_custom_dict(custom_dict)
         test_string = 'þessi texti en engir aukvisar'
@@ -56,7 +65,7 @@ class TestTranscriber(unittest.TestCase):
         self.assertEqual('T E s I t_h E x s t I E n 9 N k v I r 9i: k v I s a r', result_str)
 
     def test_longer_text(self):
-        manager = Manager()
+        manager = self.manager
         test_string = self.get_longer_text()
         transcribed = manager.transcribe(test_string, html=True)
         result_arr = manager.get_transcribed_sentence_representation(transcribed, ignore_tags=False)
@@ -65,7 +74,7 @@ class TestTranscriber(unittest.TestCase):
         self.assertEqual(4, len(result_arr))
 
     def test_longer_text_2(self):
-        manager = Manager()
+        manager = self.manager
         test_string = self.get_longer_text_2()
         transcribed = manager.transcribe(test_string, phrasing=False)
         result_arr = manager.get_transcribed_sentence_representation(transcribed, ignore_tags=False)
@@ -74,7 +83,7 @@ class TestTranscriber(unittest.TestCase):
             print(sent)
 
     def test_longer_text_3(self):
-        manager = Manager()
+        manager = self.manager
         test_string = self.get_parsed_html()
         transcribed = manager.transcribe(test_string, phrasing=True)
         result_arr = manager.get_transcribed_sentence_representation(transcribed, ignore_tags=False)
@@ -89,7 +98,7 @@ class TestTranscriber(unittest.TestCase):
  'I n Y au: E f t I r_0 f a r a n t I h au h t  <sil>', result_arr[2])
 
     def test_longer_text_4(self):
-        manager = Manager()
+        manager = self.manager
         test_string = self.get_problematic_html()
         transcribed = manager.transcribe(test_string, phrasing=True, html=True)
         result_arr = manager.get_transcribed_sentence_representation(transcribed, ignore_tags=False)

@@ -1,13 +1,22 @@
 import unittest
 import os
-from manager.textprocessing_manager import Manager
-import manager.tokens_manager as tokens
+from icefrontend import Frontend
+import icefrontend.tokens_manager as tokens
 
 
 class TestCleaner(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.manager = Frontend()
+
+    def setUp(self) -> None:
+        self.manager.set_g2p_word_separator('')
+        self.manager.set_g2p_syllab_symbol('')
+        self.manager.set_g2p_custom_dict(None)
+
     def test_clean(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'Alltaf að hreinsä allt 🥵'
         result = manager.clean(input_text)
         result_str = tokens.extract_clean_text(result)
@@ -22,14 +31,14 @@ class TestCleaner(unittest.TestCase):
         self.assertEqual('Því fleiri, því betri', result_str)
 
     def test_ssml(self):
-        manager = Manager()
+        manager = self.manager
         input_text = 'Þetta (e. is English)'
         result = manager.clean(input_text)
         result_str = tokens.extract_clean_text(result, ignore_tags=False)
         self.assertEqual('Þetta <lang xml:lang="en-GB"> is English </lang>', result_str)
 
     def test_html_clean(self):
-        manager = Manager()
+        manager = self.manager
         input_text = self.get_html_string()
         result = manager.clean(input_text, html=True)
         self.assertEqual(len(result), 92)
@@ -40,14 +49,14 @@ class TestCleaner(unittest.TestCase):
         print(tokens.extract_clean_text(result, ignore_tags=False))
 
     def test_html_table_clean(self):
-        manager = Manager()
+        manager = self.manager
         input_text = self.get_html_string2()
         result = manager.clean(input_text, html=True)
         self.assertEqual(len(result), 453)
         self.assertEqual('samhengi', result[451].clean)
 
     def test_html_table2_clean(self):
-        manager = Manager()
+        manager = self.manager
         input_text = self.get_html_table_2()
         result = manager.clean(input_text, html=True)
         print(tokens.extract_clean_text(result))
