@@ -14,6 +14,8 @@
 
 """
 import argparse
+import torch
+import logging
 
 from .unicode_maps import replacement_dictionary, post_dict_lookup
 from .settings import ManagerResources
@@ -29,17 +31,26 @@ from .normalizer_manager import NormalizerManager
 from .spellchecker_manager import SpellCheckerManager
 from .phrasing_manager import PhrasingManager
 from .g2p_manager import G2PManager
-
+logging.getLogger('fairseq').setLevel(logging.WARNING)
 
 class Manager:
 
-    def __init__(self, custom_pron_dict={}):
+    def __init__(self, custom_pron_dict={}, useGPU=False):
+        if useGPU:
+            if torch.cuda.is_available():
+                print('GPU detected, using GPU for Tagging and G2P')
+                device=torch.device('cuda')
+            else:
+                print('GPU not detected, using CPU for Tagging and G2P')
+                device=torch.device('cpu')
+        else:
+            device=torch.device('cpu')
         self.resources = ManagerResources()
         self.tokenizer = Tokenizer(self.get_abbreviations(), self.get_nonending_abbreviations())
         cleaner_lexicon = self.get_default_cleaner_lexicon()
         self.cleaner = CleanerManager(self.get_replacement_dict(), self.get_post_lookup_dict(), cleaner_lexicon,
                                       self.get_alphabet(), self.get_html_mapping())
-        self.normalizer = NormalizerManager()
+        self.normalizer = NormalizerManager(device=device)
         self.spellchecker = SpellCheckerManager()
         self.phrasing = PhrasingManager()
         self.g2p = G2PManager()

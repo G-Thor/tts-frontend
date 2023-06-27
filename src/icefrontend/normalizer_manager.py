@@ -6,18 +6,30 @@ the normalizer module, as well as pos-tags delivered by the normalizer module.
 """
 import difflib
 
+import torch
+import pos
+import logging
 from typing import Tuple
 from .tokens import Normalized, TagToken
 from .tokens_manager import extract_sentences
 from .linked_tokens import LinkedTokens
 
-from regina_normalizer import abbr_functions
-from regina_normalizer import number_functions
+from .normalization import abbr_functions
+from .normalization import number_functions
+
 
 
 class NormalizerManager:
 
-    def __init__(self):
+    def __init__(self, device=torch.device("cpu")):
+        self.tagger: pos.Tagger = torch.hub.load(
+            repo_or_dir="cadia-lvl/POS",
+            model="tag", # This specifies which model to use. Set to 'tag_large' for large model.
+            device=device,
+            force_reload=False,
+            force_download=False,
+        )
+        logging.getLogger("pos").setLevel(logging.WARNING)
         # the final list of normalized tokens after processing by the normalizerManager
         self.normalized_tokens = []
         # keep track of prenormalized and normalized elements during alignment of original token list and
@@ -79,10 +91,9 @@ class NormalizerManager:
         :return: two lists of tuples, from both normalizing steps
         """
         prenormalized = abbr_functions.replace_abbreviations(text, "other")
-        prenorm_tuples = self.extract_prenorm_tuples(prenormalized, text.split())
-        expanded_abbr = ' '.join(prenormalized).strip()
-        normalized = number_functions.handle_sentence(expanded_abbr, "other")
-
+        prenorm_tuples = self.extract_prenorm_tuples(prenormalized.split(), text.split())
+        expanded_abbr = ''.join(prenormalized).strip()
+        normalized = number_functions.handle_sentence(expanded_abbr, "other", self.tagger)
         return prenorm_tuples, normalized
 
     def extract_prenorm_tuples(self, prenorm_arr: list, sent_arr: list) -> list:

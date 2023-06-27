@@ -25,9 +25,10 @@ class PhrasingManager:
         return ind_arr
 
     def phrase_text(self, tagged_text: str):
+        CWD = os.getcwd()
         MANAGER_PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
         PROJECT_ROOT, tail = os.path.split(MANAGER_PROJECT_ROOT)
-        os.chdir(PROJECT_ROOT + '/manager/IceNLP/bat/iceparser')
+        os.chdir(PROJECT_ROOT + '/icefrontend/IceNLP/bat/iceparser')
         print('PROJECT_ROOT: ' + PROJECT_ROOT)
         with open('tagged_tmp.txt', 'w') as f:
             f.write(tagged_text)
@@ -35,12 +36,12 @@ class PhrasingManager:
         os.system(comm)
         os.remove('tagged_tmp.txt')
         os.chdir(PROJECT_ROOT)
-        with open(PROJECT_ROOT + '/manager/parsed_tmp.txt') as file:
+        with open(PROJECT_ROOT + '/icefrontend/parsed_tmp.txt') as file:
             lines = [line.strip() for line in file]
         phraser = Phrasing()
         paused_text = phraser.insert_pauses(lines)
-        os.remove(PROJECT_ROOT + '/manager/parsed_tmp.txt')
-
+        os.remove(PROJECT_ROOT + '/icefrontend/parsed_tmp.txt')
+        os.chdir(CWD)
         return paused_text
 
     def phrase_token_list(self, normalized_tokens: list) -> list:

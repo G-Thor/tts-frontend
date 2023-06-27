@@ -132,11 +132,13 @@ transcribed_as_string: s Y n a n f j ou: r I r m E: t r a r au: s E: k u n t Y
 
 
 ## Credits
-The submodules Phrasing-Tool and Regina-Normalizer were forked from the [Reykjavik University
-LVL](https://lvl.ru.is/) Github repository, where the original development was done.
+This is a fork of Grammatek ehf.'s tts-frontend, but has undergone significant refactoring by Gunnar Thor Örnólfsson at [Reykjavik University's 
+LVL](https://lvl.ru.is/).
 
-The submodule GreynirCorrect4LT was forked from [Miðeind's GreynirCorrect](https://github.com/mideind/GreynirCorrect)
-spell and grammar checker.
+The adapted code from the [phrasing tool](https://github.com/grammatek/phrasing-tool/tree/tts-frontend) and [normalizer](https://github.com/grammatek/regina_normalizer/tree/tts-frontend) has been integrated into this package, removing all reliance on submodules.
+
+Those tools were originally forked from the [Reykjavik University
+LVL](https://lvl.ru.is/) Github repository, and adapted by Grammatek.
 
 The IceNLP package as well as the ABL-tagger used in the project were developed at RU LVL.
 
