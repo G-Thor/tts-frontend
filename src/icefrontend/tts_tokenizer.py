@@ -1,11 +1,11 @@
 
 import re
 
-ALPHABETIC = '[A-Za-záéíóúýðþæöÁÉÍÓÚÝÐÞÆÖ]+'
-UPPER_CASE = '[A-ZÁÉÍÓÚÝÐÞÆÖ]'
+ALPHABETIC = r'[A-Za-záéíóúýðþæöÁÉÍÓÚÝÐÞÆÖ]+'
+UPPER_CASE = r'[A-ZÁÉÍÓÚÝÐÞÆÖ]'
 # we can't use \\w because it only takes ascii chars into account
-WORD_CHAR = '[A-Za-záéíóúýðþæöÁÉÍÓÚÝÐÞÆÖ\\d.µ]'
-EOS_SYMBOL = '[.:?!;)(]'
+WORD_CHAR = r'[A-Za-záéíóúýðþæöÁÉÍÓÚÝÐÞÆÖ\d.µ]'
+EOS_SYMBOL = r'[.:?!;)(]'
 
 
 class Tokenizer:
@@ -169,7 +169,7 @@ class Tokenizer:
         if not self.should_process(token):
             # we need to insert spaces after and before enclosing parenthesis regardless
             # of the return value of "should process", also if a token ends with a comma, insert space
-            token = re.sub('(\\()(.+)(\\))', '\\g<1> \\g<2> \\g<3>', token)
+            token = re.sub(r'(\()(.+)(\))', r'\g<1> \g<2> \g<3>', token)
             if token.endswith(','):
                 token = token[:-1] + ' ,'
             return token
@@ -178,22 +178,22 @@ class Tokenizer:
         # Patterns:
         processed_token = token
         # insert space after these symbols: '(', '[', '{', '-', '_'
-        insert_space_after_anywhere = '([(\\[{\\-/_+])'
+        insert_space_after_anywhere = r'([(\[{\-/_+])'
         # insert space before these symbols: ')', '[', '}' '-', '_'  TODO: shouldn't '[' be ']' ?
-        insert_space_before_anywhere = '([)\\]}\\-/_%+])'
+        insert_space_before_anywhere = r'([)\]}\-/_%+])'
         # insert space after these symbols at the beginning of a token: '"',
-        insert_space_after_if_beginning = '^(\")(.+)'
+        insert_space_after_if_beginning = r'^(\")(.+)'
         # insert space before these symbols at the end of a token: '"', ':', ',', '.', '!', '?'
-        insert_space_before_if_end = '(.+)([\":,.!?])$'
+        insert_space_before_if_end = r'(.+)([\":,.!?])$'
         # insert space before these symbols if two of them occur at the end of a token
-        insert_space_before_if_end_and_punct = '(.+)([\":,.!?])(\\s[\":,.!?])$'
+        insert_space_before_if_end_and_punct = r'(.+)([\":,.!?])(\s[\":,.!?])$'
 
         # Replacements
-        processed_token = re.sub(insert_space_after_anywhere, '\\g<1> ', processed_token)
-        processed_token = re.sub(insert_space_before_anywhere, ' \\g<1>', processed_token)
-        processed_token = re.sub(insert_space_after_if_beginning, '\\g<1> \\g<2>', processed_token)
-        processed_token = re.sub(insert_space_before_if_end, '\\g<1> \\g<2>', processed_token)
-        processed_token = re.sub(insert_space_before_if_end_and_punct, '\\g<1> \\g<2>\\g<3>', processed_token)
+        processed_token = re.sub(insert_space_after_anywhere, r'\g<1> ', processed_token)
+        processed_token = re.sub(insert_space_before_anywhere, r' \g<1>', processed_token)
+        processed_token = re.sub(insert_space_after_if_beginning, r'\g<1> \g<2>', processed_token)
+        processed_token = re.sub(insert_space_before_if_end, r'\g<1> \g<2>', processed_token)
+        processed_token = re.sub(insert_space_before_if_end_and_punct, r'\g<1> \g<2>\g<3>', processed_token)
 
         return processed_token
 
@@ -206,42 +206,42 @@ class Tokenizer:
             return False
         # possibly a year at the end of a sentence? If yes, we want the dot to be detached
         # we only consider 4 digit years up to year 2099
-        if re.fullmatch('(1\\d{3})|(20\\d{2})\\.', token):
+        if re.fullmatch(r'(1\d{3})|(20\d{2})\.', token):
             self.freeze_space = True
             return True
         # a simple cardinal or ordinal number
-        if re.fullmatch('\\d+\\.?', token):
+        if re.fullmatch(r'\d+\.?', token):
             return False
         # a more complex combination of digits and punctuations, e.g. dates and large numbers
-        if re.fullmatch('(\\d+[.,:]\\d+)+[,.]?', token):
+        if re.fullmatch(r'(\d+[.,:]\d+)+[,.]?', token):
             return False
         # telephone number or 'kennitala', don't split on hyphen
-        if re.fullmatch('\\d{3}-\\d{4}[,.?:]?', token):
+        if re.fullmatch(r'\d{3}-\d{4}[,.?:]?', token):
             return False
-        if re.fullmatch('\\d{6}-\\d{4}[,.?:]?', token):
+        if re.fullmatch(r'\d{6}-\d{4}[,.?:]?', token):
             return False
         # don't split on hyphen if we have a digits pattern with more than one hyphen
-        if re.fullmatch('(\\d+-){2,}\\d+', token):
+        if re.fullmatch(r'(\d+-){2,}\d+', token):
             return False
         # don't split on hyphen for non-digits
-        if re.fullmatch('[^\\d]+-[^\\d]+', token):
+        if re.fullmatch(r'[^\d]+-[^\d]+', token):
             return False
         # don't split on slash for small number of chars on each side (digits or letters)
-        if re.fullmatch(WORD_CHAR + '{1,3}/' + WORD_CHAR + '{1,3}', token):
+        if re.fullmatch(WORD_CHAR + r'{1,3}/' + WORD_CHAR + r'{1,3}', token):
             return False
         # special cases - resolve! We need to have simple rules for when to split and when not, the tokenizer
         # should not have to know too much about the normalizer!
-        if re.match('(millj./)|(.+/klst)|(.+/kwst)|(.+/gwst)|(.+/gw\\.st)|(.+/mwst)|(.+/twst)|(.+/m²)|(.+/m³)'
-                    '|(.+/mm²)|(.+/mm³)|(.+/cm²)|(.+/cm³)|(.+/ferm)', token.lower()):
+        if re.match(r'(millj./)|(.+/klst)|(.+/kwst)|(.+/gwst)|(.+/gw\\.st)|(.+/mwst)|(.+/twst)|(.+/m²)|(.+/m³)'
+                    r'|(.+/mm²)|(.+/mm³)|(.+/cm²)|(.+/cm³)|(.+/ferm)', token.lower()):
             return False
         # don't split smileys TODO: add more patterns here
-        if re.fullmatch('(:\))|(:\()', token):
+        if re.fullmatch(r'(:\))|(:\()', token):
             return False
         # don't do anything with tokens that look like links and e-mail addresses
-        if re.match('(www)|(http)|@', token):
+        if re.match(r'(www)|(http)|@', token):
             return False
         # don't do anything with closing tags tokens
-        if re.match('</.+>', token):
+        if re.match(r'</.+>', token):
             return False
         # don't process abbreviations
         if self.is_abbreviation(token):
@@ -251,7 +251,7 @@ class Tokenizer:
         return True
 
     def is_uppercase_abbr(self, token: str) -> bool:
-        return re.match('(' + UPPER_CASE + '\\.)+', token) and not self.is_abbreviation(token)
+        return re.match('(' + UPPER_CASE + r'\.)+', token) and not self.is_abbreviation(token)
 
     def is_abbreviation(self, token: str) -> bool:
         # is adding the dot for abbr-testing too general?
