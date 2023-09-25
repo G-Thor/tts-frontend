@@ -57,7 +57,7 @@ setup(
 
     # check requirements!
     install_requires=[
-        'pos @ git+ssh://git@github.com/cadia-lvl/POS@4b44be9',
+        'pos @ git+https://github.com/cadia-lvl/POS@4b44be9',
         'text-cleaner @ git+https://github.com/grammatek/text-cleaner@34b9c130a39142e83ced2383e0b65d66a27c53d9',
         'reynir-correct >= 3.4.6',
     ],
